@@ -19,7 +19,7 @@ function calculateGrade(score) {
   if (score >= 50) return { grade: "C", grade_point: 3 };
   if (score >= 45) return { grade: "D", grade_point: 2 };
   if (score >= 40) return { grade: "E", grade_point: 1 };
-  return { grade: "F", grade_point: 0 };
+  return { grade: "F", grade_point: 0 }
 }
 
 function saveDb() {
