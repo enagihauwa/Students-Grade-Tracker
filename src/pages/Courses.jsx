@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import EmptyState from "../components/EmptyState";
 import ConfirmModal from "../components/ConfirmModal";
+import { getCourses, addCourse, updateCourse, deleteCourse, getDepartments } from "../db";
 
 export default function Courses() {
   const [courses, setCourses] = useState([]);
@@ -8,38 +9,38 @@ export default function Courses() {
   const [showForm, setShowForm] = useState(false);
   const [editingCourse, setEditingCourse] = useState(null);
   const [deletingCourse, setDeletingCourse] = useState(null);
+  const [departments, setDepartments] = useState([]);
   const [form, setForm] = useState({
     course_name: "",
     course_code: "",
     credit_unit: "3",
     semester: "First",
     session: "",
+    department: "",
   });
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
-  const [loadError, setLoadError] = useState("");
 
   const fetchCourses = () => {
-    setLoadError("");
-    fetch("/api/courses")
-      .then((r) => r.json())
+    getCourses()
       .then((d) => {
-        setCourses(Array.isArray(d) ? d : []);
+        setCourses(d);
         setLoading(false);
       })
-      .catch(() => {
-        setLoading(false);
-        setLoadError("Could not load courses. Is the backend server running?");
-      });
+      .catch(() => setLoading(false));
   };
 
   useEffect(() => {
     fetchCourses();
   }, []);
 
+  useEffect(() => {
+    getDepartments().then(setDepartments);
+  }, []);
+
   const openAddForm = () => {
     setEditingCourse(null);
-    setForm({ course_name: "", course_code: "", credit_unit: "3", semester: "First", session: "" });
+    setForm({ course_name: "", course_code: "", credit_unit: "3", semester: "First", session: "", department: departments.length > 0 ? departments[0].name : "" });
     setError("");
     setFieldErrors({});
     setShowForm(true);
@@ -53,6 +54,7 @@ export default function Courses() {
       credit_unit: String(c.credit_unit),
       semester: c.semester,
       session: c.session,
+      department: c.department || "",
     });
     setError("");
     setFieldErrors({});
@@ -72,46 +74,36 @@ export default function Courses() {
       return;
     }
 
-    const url = editingCourse ? `/api/courses/${editingCourse.id}` : "/api/courses";
-    const method = editingCourse ? "PUT" : "POST";
+    const action = editingCourse
+      ? updateCourse(editingCourse.id, form)
+      : addCourse(form);
 
-    fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    })
-      .then((r) => {
-        if (!r.ok) return r.json().then((d) => Promise.reject(d));
-        return r.json();
-      })
+    action
       .then(() => {
-        setForm({ course_name: "", course_code: "", credit_unit: "3", semester: "First", session: "" });
+        setForm({ course_name: "", course_code: "", credit_unit: "3", semester: "First", session: "", department: departments.length > 0 ? departments[0].name : "" });
         setShowForm(false);
         setEditingCourse(null);
         fetchCourses();
       })
       .catch((err) => {
-        if (err?.error) {
-          setError(err.error);
-        } else if (err instanceof TypeError) {
-          setError("Cannot connect to the server. Make sure the backend is running (cd server && npm start).");
+        if (err?.message?.includes("key already exists")) {
+          setError("Course code already exists");
         } else {
-          setError("Failed to save course. Please check your connection and try again.");
+          setError("Failed to save course.");
         }
       });
   };
 
   const handleDelete = () => {
     if (!deletingCourse) return;
-    fetch(`/api/courses/${deletingCourse.id}`, { method: "DELETE" })
-      .then((r) => {
-        if (!r.ok) return Promise.reject();
+    deleteCourse(deletingCourse.id)
+      .then(() => {
         setDeletingCourse(null);
         fetchCourses();
       })
       .catch(() => {
         setDeletingCourse(null);
-        setError("Failed to delete course. Please try again.");
+        setError("Failed to delete course.");
       });
   };
 
@@ -153,7 +145,8 @@ export default function Courses() {
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={() => { setShowForm(false); setEditingCourse(null); }}>
+        <div className="fixed inset-0 bg-black/40 z-50 overflow-y-auto" onClick={() => { setShowForm(false); setEditingCourse(null); }}>
+          <div className="min-h-full flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-navy-800">
@@ -214,6 +207,19 @@ export default function Courses() {
                 </select>
               </div>
               <div>
+                <label className="block text-sm font-medium text-navy-700 mb-1">Department</label>
+                <select
+                  value={form.department}
+                  onChange={(e) => setForm({ ...form, department: e.target.value })}
+                  className="w-full px-3 py-2.5 border border-navy-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent text-navy-800 bg-white"
+                >
+                  <option value="">Select department...</option>
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.name}>{d.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-navy-700 mb-1">Academic Session</label>
                 <input
                   type="text"
@@ -241,6 +247,7 @@ export default function Courses() {
               </div>
             </form>
           </div>
+          </div>
         </div>
       )}
 
@@ -263,9 +270,6 @@ export default function Courses() {
         />
       ) : (
         <div className="space-y-6">
-          {loadError && (
-            <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{loadError}</div>
-          )}
           {error && (
             <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{error}</div>
           )}
@@ -277,18 +281,20 @@ export default function Courses() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-navy-50 text-left text-navy-600">
-                      <th className="px-4 py-3 font-semibold">Course Code</th>
-                      <th className="px-4 py-3 font-semibold">Course Name</th>
-                      <th className="px-4 py-3 font-semibold text-center">Credit Unit</th>
-                      <th className="px-4 py-3 font-semibold text-right w-24">Action</th>
-                    </tr>
+                  <tr className="bg-navy-50 text-left text-navy-600">
+                    <th className="px-4 py-3 font-semibold">Course Code</th>
+                    <th className="px-4 py-3 font-semibold">Course Name</th>
+                    <th className="px-4 py-3 font-semibold">Department</th>
+                    <th className="px-4 py-3 font-semibold text-center">Credit Unit</th>
+                    <th className="px-4 py-3 font-semibold text-right w-24">Action</th>
+                  </tr>
                   </thead>
                   <tbody>
                     {grouped[key].map((c) => (
                       <tr key={c.id} className="border-t border-navy-50 hover:bg-navy-50/50 transition-colors">
                         <td className="px-4 py-3 font-mono font-medium text-navy-800">{c.course_code}</td>
                         <td className="px-4 py-3 text-navy-700">{c.course_name}</td>
+                        <td className="px-4 py-3 text-navy-600">{c.department || "-"}</td>
                         <td className="px-4 py-3 text-center">
                           <span className="bg-navy-100 text-navy-700 px-2.5 py-0.5 rounded-full text-xs font-medium">
                             {c.credit_unit}

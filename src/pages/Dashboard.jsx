@@ -1,20 +1,41 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import EmptyState from "../components/EmptyState";
+import { getDashboard } from "../db";
+import seedData from "../seed";
 
 export default function Dashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
+  const [seedMsg, setSeedMsg] = useState(null);
 
   useEffect(() => {
-    fetch("/api/dashboard")
-      .then((r) => r.json())
+    getDashboard()
       .then((d) => {
         setData(d);
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, []);
+
+  const handleSeed = () => {
+    setSeeding(true);
+    setSeedMsg(null);
+    seedData()
+      .then(() => {
+        setSeedMsg({ type: "success", text: "Sample data loaded! Refreshing..." });
+        return getDashboard();
+      })
+      .then((d) => {
+        setData(d);
+        setSeeding(false);
+      })
+      .catch(() => {
+        setSeedMsg({ type: "error", text: "Seeding failed. Data may already exist." });
+        setSeeding(false);
+      });
+  };
 
   if (loading) {
     return (
@@ -31,7 +52,7 @@ export default function Dashboard() {
         title="Welcome to GradeTracker"
         description="Start by adding your students and courses. Once you have data entered, this dashboard will show you a complete overview at a glance."
         action={
-          <div className="flex gap-3 justify-center">
+          <div className="flex flex-wrap gap-3 justify-center">
             <Link
               to="/students"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-navy-600 text-white rounded-lg hover:bg-navy-700 transition-colors font-medium"
@@ -44,6 +65,13 @@ export default function Dashboard() {
             >
               Add Courses
             </Link>
+            <button
+              onClick={handleSeed}
+              disabled={seeding}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold-500 text-white rounded-lg hover:bg-gold-600 disabled:opacity-50 transition-colors font-medium"
+            >
+              {seeding ? "Loading..." : "Load Sample Data"}
+            </button>
           </div>
         }
       />
@@ -52,10 +80,24 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-navy-900">Dashboard</h1>
-        <p className="text-navy-500 mt-1">Overview of your academic records</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-navy-900">Dashboard</h1>
+          <p className="text-navy-500 mt-1">Overview of your academic records</p>
+        </div>
+        <button
+          onClick={handleSeed}
+          disabled={seeding}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-gold-500 text-white rounded-lg hover:bg-gold-600 disabled:opacity-50 transition-colors font-medium text-sm"
+        >
+          {seeding ? "Loading..." : "Load Sample Data"}
+        </button>
       </div>
+      {seedMsg && (
+        <div className={`p-3 rounded-lg border text-sm ${seedMsg.type === "success" ? "bg-green-50 border-green-200 text-green-700" : "bg-red-50 border-red-200 text-red-700"}`}>
+          {seedMsg.text}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl shadow-sm border border-navy-100 p-6">

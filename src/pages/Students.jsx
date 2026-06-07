@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import EmptyState from "../components/EmptyState";
 import ConfirmModal from "../components/ConfirmModal";
+import { getStudents, addStudent, updateStudent, deleteStudent, getDepartments, checkMatricExists } from "../db";
 
 export default function Students() {
   const [students, setStudents] = useState([]);
@@ -17,32 +18,112 @@ export default function Students() {
   });
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
-  const [loadError, setLoadError] = useState("");
+  const [sortColumn, setSortColumn] = useState("created_at");
+  const [sortDirection, setSortDirection] = useState("asc");
+  const [departments, setDepartments] = useState([]);
+  const [matricStatus, setMatricStatus] = useState(null);
+  const matricTimer = useRef(null);
+
+  const sortedStudents = useMemo(() => {
+    const sorted = [...students];
+    sorted.sort((a, b) => {
+      let valA, valB;
+      switch (sortColumn) {
+        case "name":
+          valA = a.name.toLowerCase();
+          valB = b.name.toLowerCase();
+          break;
+        case "matriculation_number":
+          valA = a.matriculation_number.toLowerCase();
+          valB = b.matriculation_number.toLowerCase();
+          break;
+        case "department":
+          valA = a.department.toLowerCase();
+          valB = b.department.toLowerCase();
+          break;
+        case "level":
+          valA = Number(a.level);
+          valB = Number(b.level);
+          break;
+        default:
+          valA = new Date(a.created_at);
+          valB = new Date(b.created_at);
+      }
+      if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+      if (valA > valB) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+    return sorted;
+  }, [students, sortColumn, sortDirection]);
+
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  const SortIcon = ({ column }) => {
+    if (sortColumn !== column) {
+      return (
+        <svg className="w-3 h-3 inline-block ml-1 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+        </svg>
+      );
+    }
+    return (
+      <svg className="w-3 h-3 inline-block ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {sortDirection === "asc" ? (
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+        ) : (
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        )}
+      </svg>
+    );
+  };
 
   const fetchStudents = () => {
-    setLoadError("");
-    const url = search ? `/api/students/search?q=${encodeURIComponent(search)}` : "/api/students";
-    fetch(url)
-      .then((r) => r.json())
+    getStudents(search || undefined)
       .then((d) => {
-        setStudents(Array.isArray(d) ? d : []);
+        setStudents(d);
         setLoading(false);
       })
-      .catch(() => {
-        setLoading(false);
-        setLoadError("Could not load students. Is the backend server running?");
-      });
+      .catch(() => setLoading(false));
   };
 
   useEffect(() => {
     fetchStudents();
   }, [search]);
 
+  useEffect(() => {
+    getDepartments().then(setDepartments);
+  }, []);
+
+  const handleMatricChange = (value) => {
+    setForm((prev) => ({ ...prev, matriculation_number: value }));
+    setFieldErrors((prev) => ({ ...prev, matriculation_number: "" }));
+    setMatricStatus(null);
+    if (matricTimer.current) clearTimeout(matricTimer.current);
+    if (!value.trim()) return;
+    if (editingStudent && value.trim() === editingStudent.matriculation_number) {
+      setMatricStatus("same");
+      return;
+    }
+    matricTimer.current = setTimeout(() => {
+      checkMatricExists(value).then((exists) => {
+        setMatricStatus(exists ? "exists" : "available");
+      });
+    }, 500);
+  };
+
   const openAddForm = () => {
     setEditingStudent(null);
-    setForm({ name: "", matriculation_number: "", department: "", level: "100" });
+    setForm({ name: "", matriculation_number: "", department: departments.length > 0 ? departments[0].name : "", level: "100" });
     setError("");
     setFieldErrors({});
+    setMatricStatus(null);
     setShowForm(true);
   };
 
@@ -56,6 +137,7 @@ export default function Students() {
     });
     setError("");
     setFieldErrors({});
+    setMatricStatus(null);
     setShowForm(true);
   };
 
@@ -71,47 +153,42 @@ export default function Students() {
       setFieldErrors(errors);
       return;
     }
+    if (matricStatus === "exists") {
+      setError("Matriculation number already exists");
+      return;
+    }
 
-    const url = editingStudent ? `/api/students/${editingStudent.id}` : "/api/students";
-    const method = editingStudent ? "PUT" : "POST";
+    const action = editingStudent
+      ? updateStudent(editingStudent.id, form)
+      : addStudent(form);
 
-    fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    })
-      .then((r) => {
-        if (!r.ok) return r.json().then((d) => Promise.reject(d));
-        return r.json();
-      })
+    action
       .then(() => {
-        setForm({ name: "", matriculation_number: "", department: "", level: "100" });
+        setForm({ name: "", matriculation_number: "", department: departments.length > 0 ? departments[0].name : "", level: "100" });
         setShowForm(false);
         setEditingStudent(null);
+        setMatricStatus(null);
         fetchStudents();
       })
       .catch((err) => {
-        if (err?.error) {
-          setError(err.error);
-        } else if (err instanceof TypeError) {
-          setError("Cannot connect to the server. Make sure the backend is running (cd server && npm start).");
+        if (err?.message?.includes("key already exists")) {
+          setError("Matriculation number already exists");
         } else {
-          setError("Failed to save student. Please check your connection and try again.");
+          setError("Failed to save student.");
         }
       });
   };
 
   const handleDelete = () => {
     if (!deletingStudent) return;
-    fetch(`/api/students/${deletingStudent.id}`, { method: "DELETE" })
-      .then((r) => {
-        if (!r.ok) return Promise.reject();
+    deleteStudent(deletingStudent.id)
+      .then(() => {
         setDeletingStudent(null);
         fetchStudents();
       })
       .catch(() => {
         setDeletingStudent(null);
-        setError("Failed to delete student. Please try again.");
+        setError("Failed to delete student.");
       });
   };
 
@@ -144,7 +221,8 @@ export default function Students() {
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={() => { setShowForm(false); setEditingStudent(null); }}>
+        <div className="fixed inset-0 bg-black/40 z-50 overflow-y-auto" onClick={() => { setShowForm(false); setEditingStudent(null); }}>
+          <div className="min-h-full flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-navy-800">
@@ -173,24 +251,42 @@ export default function Students() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-navy-700 mb-1">Matriculation Number</label>
-                <input
-                  type="text"
-                  value={form.matriculation_number}
-                  onChange={(e) => { setForm({ ...form, matriculation_number: e.target.value }); setFieldErrors((prev) => ({ ...prev, matriculation_number: "" })); }}
-                  className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent text-navy-800 ${fieldErrors.matriculation_number ? "border-red-400 bg-red-50" : "border-navy-200"}`}
-                  placeholder="e.g., 2023/1/12345"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={form.matriculation_number}
+                    onChange={(e) => handleMatricChange(e.target.value)}
+                    className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent text-navy-800 pr-10 ${fieldErrors.matriculation_number ? "border-red-400 bg-red-50" : "border-navy-200"}`}
+                    placeholder="e.g., 2023/1/12345"
+                  />
+                  {matricStatus === "available" && (
+                    <svg className="absolute right-3 top-3 w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                  {matricStatus === "exists" && (
+                    <svg className="absolute right-3 top-3 w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  )}
+                </div>
+                {matricStatus === "exists" && (
+                  <p className="text-red-500 text-xs mt-1">This matriculation number is already in use</p>
+                )}
                 {fieldErrors.matriculation_number && <p className="text-red-500 text-xs mt-1">{fieldErrors.matriculation_number}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-navy-700 mb-1">Department</label>
-                <input
-                  type="text"
+                <select
                   value={form.department}
                   onChange={(e) => { setForm({ ...form, department: e.target.value }); setFieldErrors((prev) => ({ ...prev, department: "" })); }}
-                  className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent text-navy-800 ${fieldErrors.department ? "border-red-400 bg-red-50" : "border-navy-200"}`}
-                  placeholder="e.g., Computer Science"
-                />
+                  className={`w-full px-3 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent text-navy-800 bg-white ${fieldErrors.department ? "border-red-400 bg-red-50" : "border-navy-200"}`}
+                >
+                  <option value="">Select a department...</option>
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.name}>{d.name}</option>
+                  ))}
+                </select>
                 {fieldErrors.department && <p className="text-red-500 text-xs mt-1">{fieldErrors.department}</p>}
               </div>
               <div>
@@ -224,6 +320,7 @@ export default function Students() {
               </div>
             </form>
           </div>
+          </div>
         </div>
       )}
 
@@ -246,9 +343,6 @@ export default function Students() {
         />
       ) : (
         <>
-          {loadError && (
-            <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{loadError}</div>
-          )}
           {error && (
             <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{error}</div>
           )}
@@ -270,16 +364,27 @@ export default function Students() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-navy-50 text-left text-navy-600">
-                    <th className="px-4 py-3 font-semibold">S/N</th>
-                    <th className="px-4 py-3 font-semibold">Name</th>
-                    <th className="px-4 py-3 font-semibold">Matric No.</th>
-                    <th className="px-4 py-3 font-semibold">Department</th>
-                    <th className="px-4 py-3 font-semibold">Level</th>
+                    <th className="px-4 py-3 font-semibold w-10">S/N</th>
+                    {[
+                      { key: "name", label: "Name" },
+                      { key: "matriculation_number", label: "Matric No." },
+                      { key: "department", label: "Department" },
+                      { key: "level", label: "Level" },
+                    ].map(({ key, label }) => (
+                      <th
+                        key={key}
+                        className="px-4 py-3 font-semibold cursor-pointer select-none hover:text-navy-800 transition-colors"
+                        onClick={() => handleSort(key)}
+                      >
+                        {label}
+                        <SortIcon column={key} />
+                      </th>
+                    ))}
                     <th className="px-4 py-3 font-semibold text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {students.map((s, i) => (
+                  {sortedStudents.map((s, i) => (
                     <tr key={s.id} className="border-t border-navy-50 hover:bg-navy-50/50 transition-colors">
                       <td className="px-4 py-3 text-navy-400 text-xs">{i + 1}</td>
                       <td className="px-4 py-3 font-medium text-navy-800">{s.name}</td>

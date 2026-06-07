@@ -2,7 +2,8 @@ export default function ConfirmModal({ open, title, message, confirmLabel, cance
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={onCancel}>
+    <div className="fixed inset-0 bg-black/40 z-50 overflow-y-auto" onClick={onCancel}>
+      <div className="min-h-full flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
         <div className={`inline-flex items-center justify-center w-12 h-12 rounded-full mx-auto mb-4 ${danger ? "bg-red-100" : "bg-navy-100"}`}>
           <svg className={`w-6 h-6 ${danger ? "text-red-600" : "text-navy-600"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -31,6 +32,7 @@ export default function ConfirmModal({ open, title, message, confirmLabel, cance
             {confirmLabel || "Confirm"}
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import EmptyState from "../components/EmptyState";
+import { getStudents, getScores, getGpa } from "../db";
 
 export default function Results() {
   const { studentId } = useParams();
@@ -12,10 +13,9 @@ export default function Results() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    fetch("/api/students")
-      .then((r) => r.json())
+    getStudents()
       .then((d) => {
-        setStudents(Array.isArray(d) ? d : []);
+        setStudents(d);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -25,11 +25,11 @@ export default function Results() {
     if (selectedId) {
       setLoaded(false);
       Promise.all([
-        fetch(`/api/scores/${selectedId}`).then((r) => r.json()),
-        fetch(`/api/gpa/${selectedId}`).then((r) => r.json()),
+        getScores(selectedId),
+        getGpa(selectedId),
       ])
         .then(([scoresData, gpaData]) => {
-          setScores(Array.isArray(scoresData) ? scoresData : []);
+          setScores(scoresData);
           setGpa(gpaData);
           setLoaded(true);
         })

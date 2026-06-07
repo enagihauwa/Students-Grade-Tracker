@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import EmptyState from "../components/EmptyState";
+import { getStudents, getCourses, getScores, saveScore } from "../db";
 
 export default function Scores() {
   const [students, setStudents] = useState([]);
@@ -14,12 +15,12 @@ export default function Scores() {
 
   const fetchData = () => {
     Promise.all([
-      fetch("/api/students").then((r) => r.json()),
-      fetch("/api/courses").then((r) => r.json()),
+      getStudents(),
+      getCourses(),
     ])
       .then(([studentsData, coursesData]) => {
-        setStudents(Array.isArray(studentsData) ? studentsData : []);
-        setCourses(Array.isArray(coursesData) ? coursesData : []);
+        setStudents(studentsData);
+        setCourses(coursesData);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -31,9 +32,7 @@ export default function Scores() {
 
   useEffect(() => {
     if (selectedStudent) {
-      fetch(`/api/scores/${selectedStudent}`)
-        .then((r) => r.json())
-        .then((d) => setScores(Array.isArray(d) ? d : []));
+      getScores(selectedStudent).then((d) => setScores(d));
     } else {
       setScores([]);
     }
@@ -62,19 +61,11 @@ export default function Scores() {
       return;
     }
 
-    fetch("/api/scores", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        student_id: Number(selectedStudent),
-        course_id: Number(selectedCourse),
-        score,
-      }),
+    saveScore({
+      student_id: Number(selectedStudent),
+      course_id: Number(selectedCourse),
+      score,
     })
-      .then((r) => {
-        if (!r.ok) return r.json().then((d) => Promise.reject(d));
-        return r.json();
-      })
       .then((d) => {
         setMessage({
           type: "success",
@@ -83,18 +74,10 @@ export default function Scores() {
         setScoreValue("");
         setSelectedCourse("");
         setEditingScoreId(null);
-        fetch(`/api/scores/${selectedStudent}`)
-          .then((r) => r.json())
-          .then((d) => setScores(Array.isArray(d) ? d : []));
+        getScores(selectedStudent).then((d) => setScores(d));
       })
       .catch((err) => {
-        if (err?.error) {
-          setMessage({ type: "error", text: err.error });
-        } else if (err instanceof TypeError) {
-          setMessage({ type: "error", text: "Cannot connect to the server. Make sure the backend is running (cd server && npm start)." });
-        } else {
-          setMessage({ type: "error", text: "Failed to save score. Please try again." });
-        }
+        setMessage({ type: "error", text: "Failed to save score." });
       });
   };
 
