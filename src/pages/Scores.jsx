@@ -2,6 +2,17 @@ import { useState, useEffect } from "react";
 import EmptyState from "../components/EmptyState";
 import { getStudents, getCourses, getScores, saveScore } from "../db";
 
+const INITIAL = { assignment: "", test: "", practical: "", exam: "" };
+
+function calculateGrade(score) {
+  if (score >= 70) return "A";
+  if (score >= 60) return "B";
+  if (score >= 50) return "C";
+  if (score >= 45) return "D";
+  if (score >= 40) return "E";
+  return "F";
+}
+
 export default function Scores() {
   const [students, setStudents] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -9,15 +20,15 @@ export default function Scores() {
   const [loading, setLoading] = useState(true);
   const [selectedStudent, setSelectedStudent] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
-  const [scoreValue, setScoreValue] = useState("");
+  const [components, setComponents] = useState({ ...INITIAL });
   const [message, setMessage] = useState(null);
   const [editingScoreId, setEditingScoreId] = useState(null);
 
+  const total = Object.values(components).reduce((s, v) => s + (Number(v) || 0), 0);
+  const grade = total > 0 ? calculateGrade(total) : "—";
+
   const fetchData = () => {
-    Promise.all([
-      getStudents(),
-      getCourses(),
-    ])
+    Promise.all([getStudents(), getCourses()])
       .then(([studentsData, coursesData]) => {
         setStudents(studentsData);
         setCourses(coursesData);
@@ -26,9 +37,7 @@ export default function Scores() {
       .catch(() => setLoading(false));
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   useEffect(() => {
     if (selectedStudent) {
@@ -43,47 +52,64 @@ export default function Scores() {
     setMessage(null);
 
     if (!selectedStudent) {
-      setMessage({ type: "error", text: "Please select a student from the list." });
+      setMessage({ type: "error", text: "Please select a student." });
       return;
     }
     if (!selectedCourse) {
-      setMessage({ type: "error", text: "Please select a course from the list." });
-      return;
-    }
-    if (scoreValue === "") {
-      setMessage({ type: "error", text: "Please enter a score between 0 and 100." });
+      setMessage({ type: "error", text: "Please select a course." });
       return;
     }
 
-    const score = Number(scoreValue);
-    if (isNaN(score) || score < 0 || score > 100) {
-      setMessage({ type: "error", text: "Score must be between 0 and 100." });
+    const vals = {};
+    let hasAny = false;
+    for (const key of Object.keys(components)) {
+      const v = components[key];
+      if (v !== "") {
+        const n = Number(v);
+        if (isNaN(n) || n < 0 || n > 100) {
+          setMessage({ type: "error", text: `Invalid ${key}. Must be 0–100.` });
+          return;
+        }
+        vals[key] = n;
+        hasAny = true;
+      } else {
+        vals[key] = 0;
+      }
+    }
+
+    if (!hasAny) {
+      setMessage({ type: "error", text: "Enter at least one score component." });
       return;
     }
 
     saveScore({
       student_id: Number(selectedStudent),
       course_id: Number(selectedCourse),
-      score,
+      ...vals,
     })
       .then((d) => {
         setMessage({
           type: "success",
-          text: `Score saved: ${d.course_code} — ${score} (${d.grade})`,
+          text: `Saved: ${d.course_code} — Total ${d.score} (${d.grade})`,
         });
-        setScoreValue("");
+        setComponents({ ...INITIAL });
         setSelectedCourse("");
         setEditingScoreId(null);
         getScores(selectedStudent).then((d) => setScores(d));
       })
-      .catch((err) => {
+      .catch(() => {
         setMessage({ type: "error", text: "Failed to save score." });
       });
   };
 
   const startEdit = (sc) => {
     setSelectedCourse(String(sc.course_id));
-    setScoreValue(String(sc.score));
+    setComponents({
+      assignment: sc.assignment !== undefined ? String(sc.assignment) : "",
+      test: sc.test !== undefined ? String(sc.test) : "",
+      practical: sc.practical !== undefined ? String(sc.practical) : "",
+      exam: sc.exam !== undefined ? String(sc.exam) : "",
+    });
     setEditingScoreId(sc.id);
     setMessage(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -91,11 +117,16 @@ export default function Scores() {
 
   const cancelEdit = () => {
     setSelectedCourse("");
-    setScoreValue("");
+    setComponents({ ...INITIAL });
     setEditingScoreId(null);
   };
 
-  const gradeColor = (grade) => {
+  const handleComponentChange = (key, value) => {
+    setComponents((prev) => ({ ...prev, [key]: value }));
+    setMessage(null);
+  };
+
+  const gradeColor = (g) => {
     const colors = {
       A: "bg-green-100 text-green-800",
       B: "bg-blue-100 text-blue-800",
@@ -104,7 +135,7 @@ export default function Scores() {
       E: "bg-red-100 text-red-800",
       F: "bg-red-200 text-red-900",
     };
-    return colors[grade] || "bg-gray-100 text-gray-800";
+    return colors[g] || "bg-gray-100 text-gray-800";
   };
 
   if (loading) {
@@ -120,7 +151,7 @@ export default function Scores() {
       <EmptyState
         icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
         title="Cannot Enter Scores Yet"
-        description={students.length === 0 ? "You need to add at least one student first." : "You need to add at least one course first."}
+        description={students.length === 0 ? "Add at least one student first." : "Add at least one course first."}
         action={
           <a
             href={students.length === 0 ? "/students" : "/courses"}
@@ -133,11 +164,18 @@ export default function Scores() {
     );
   }
 
+  const compFields = [
+    { key: "assignment", label: "Assignment", max: 10 },
+    { key: "test", label: "Test", max: 20 },
+    { key: "practical", label: "Practical", max: 20 },
+    { key: "exam", label: "Exam", max: 50 },
+  ];
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-navy-900">Enter Scores</h1>
-        <p className="text-navy-500 mt-1">Record scores for students across courses</p>
+        <p className="text-navy-500 mt-1">Record assessment scores for students</p>
       </div>
 
       {message && (
@@ -154,7 +192,7 @@ export default function Scores() {
 
       <div className="bg-white rounded-xl shadow-sm border border-navy-100 p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-navy-700 mb-1">Student</label>
               <select
@@ -193,22 +231,39 @@ export default function Scores() {
                 ))}
               </select>
             </div>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-navy-700 mb-1">Score (0–100)</label>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={scoreValue}
-                onChange={(e) => {
-                  setScoreValue(e.target.value);
-                  setMessage(null);
-                }}
-                className="w-full px-3 py-2.5 border border-navy-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent text-navy-800"
-                placeholder="Enter score..."
-              />
-            </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {compFields.map((f) => (
+              <div key={f.key}>
+                <label className="block text-xs font-medium text-navy-700 mb-1">
+                  {f.label} <span className="text-navy-400">(max {f.max})</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max={f.max}
+                  value={components[f.key]}
+                  onChange={(e) => handleComponentChange(f.key, e.target.value)}
+                  className="w-full px-3 py-2.5 border border-navy-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent text-navy-800"
+                  placeholder="0"
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-4 text-sm">
+            <span className="text-navy-600">
+              Total: <strong className="text-navy-800 text-base">{total}</strong>
+            </span>
+            {total > 0 && (
+              <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-bold ${gradeColor(grade)}`}>
+                {grade}
+              </span>
+            )}
+            {total > 100 && (
+              <span className="text-red-600 text-xs font-medium">Total exceeds 100!</span>
+            )}
           </div>
 
           <div className="flex justify-end gap-2">
@@ -223,7 +278,8 @@ export default function Scores() {
             )}
             <button
               type="submit"
-              className="px-6 py-2.5 bg-navy-600 text-white rounded-lg hover:bg-navy-700 transition-colors font-medium text-sm"
+              disabled={total > 100}
+              className="px-6 py-2.5 bg-navy-600 text-white rounded-lg hover:bg-navy-700 disabled:opacity-50 transition-colors font-medium text-sm"
             >
               {editingScoreId ? "Update Score" : "Save Score"}
             </button>
@@ -248,33 +304,35 @@ export default function Scores() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-navy-50 text-left text-navy-600">
-                    <th className="px-4 py-3 font-semibold">Session</th>
-                    <th className="px-4 py-3 font-semibold">Semester</th>
-                    <th className="px-4 py-3 font-semibold">Course</th>
-                    <th className="px-4 py-3 font-semibold">Code</th>
-                    <th className="px-4 py-3 font-semibold text-center">CU</th>
-                    <th className="px-4 py-3 font-semibold text-center">Score</th>
-                    <th className="px-4 py-3 font-semibold text-center">Grade</th>
-                    <th className="px-4 py-3 font-semibold text-center">GP</th>
-                    <th className="px-4 py-3 font-semibold text-center w-20">Action</th>
+                    <th className="px-3 py-3 font-semibold">Session</th>
+                    <th className="px-3 py-3 font-semibold">Sem</th>
+                    <th className="px-3 py-3 font-semibold">Course</th>
+                    <th className="px-3 py-3 font-semibold text-center">Assign</th>
+                    <th className="px-3 py-3 font-semibold text-center">Test</th>
+                    <th className="px-3 py-3 font-semibold text-center">Pract</th>
+                    <th className="px-3 py-3 font-semibold text-center">Exam</th>
+                    <th className="px-3 py-3 font-semibold text-center">Total</th>
+                    <th className="px-3 py-3 font-semibold text-center">Grade</th>
+                    <th className="px-3 py-3 font-semibold text-center w-20">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {scores.map((sc) => (
                     <tr key={sc.id} className={`border-t border-navy-50 hover:bg-navy-50/50 transition-colors ${editingScoreId === sc.id ? "bg-navy-50" : ""}`}>
-                      <td className="px-4 py-3 text-navy-600">{sc.session}</td>
-                      <td className="px-4 py-3 text-navy-600">{sc.semester}</td>
-                      <td className="px-4 py-3 font-medium text-navy-800">{sc.course_name}</td>
-                      <td className="px-4 py-3 font-mono text-navy-600">{sc.course_code}</td>
-                      <td className="px-4 py-3 text-center text-navy-600">{sc.credit_unit}</td>
-                      <td className="px-4 py-3 text-center font-semibold text-navy-800">{sc.score}</td>
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-3 py-3 text-navy-600 whitespace-nowrap">{sc.session}</td>
+                      <td className="px-3 py-3 text-navy-600">{sc.semester}</td>
+                      <td className="px-3 py-3 font-medium text-navy-800 whitespace-nowrap">{sc.course_code}</td>
+                      <td className="px-3 py-3 text-center text-navy-700">{sc.assignment ?? "—"}</td>
+                      <td className="px-3 py-3 text-center text-navy-700">{sc.test ?? "—"}</td>
+                      <td className="px-3 py-3 text-center text-navy-700">{sc.practical ?? "—"}</td>
+                      <td className="px-3 py-3 text-center text-navy-700">{sc.exam ?? "—"}</td>
+                      <td className="px-3 py-3 text-center font-semibold text-navy-800">{sc.score}</td>
+                      <td className="px-3 py-3 text-center">
                         <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-bold ${gradeColor(sc.grade)}`}>
                           {sc.grade}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-center font-semibold text-navy-800">{sc.grade_point}</td>
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-3 py-3 text-center">
                         <button
                           onClick={() => startEdit(sc)}
                           className="text-navy-500 hover:text-navy-700 transition-colors p-1.5 rounded-lg hover:bg-navy-100"

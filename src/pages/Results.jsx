@@ -184,37 +184,65 @@ export default function Results() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-navy-50 text-left text-navy-600">
-                      <th className="px-4 py-2.5 font-semibold">Course Code</th>
-                      <th className="px-4 py-2.5 font-semibold">Course Name</th>
-                      <th className="px-4 py-2.5 font-semibold text-center">CU</th>
-                      <th className="px-4 py-2.5 font-semibold text-center">Score</th>
-                      <th className="px-4 py-2.5 font-semibold text-center">Grade</th>
-                      <th className="px-4 py-2.5 font-semibold text-center">GP</th>
+                      <th className="px-3 py-2.5 font-semibold">Course Code</th>
+                      <th className="px-3 py-2.5 font-semibold">Course Name</th>
+                      <th className="px-3 py-2.5 font-semibold text-center">CU</th>
+                      <th className="px-3 py-2.5 font-semibold text-center">Assign</th>
+                      <th className="px-3 py-2.5 font-semibold text-center">Test</th>
+                      <th className="px-3 py-2.5 font-semibold text-center">Pract</th>
+                      <th className="px-3 py-2.5 font-semibold text-center">Exam</th>
+                      <th className="px-3 py-2.5 font-semibold text-center">Total</th>
+                      <th className="px-3 py-2.5 font-semibold text-center">Grade</th>
+                      <th className="px-3 py-2.5 font-semibold text-center">GP</th>
                     </tr>
                   </thead>
                   <tbody>
                     {semesterScores.map((s) => (
                       <tr key={s.id} className="border-t border-navy-50 hover:bg-navy-50/50 transition-colors">
-                        <td className="px-4 py-2.5 font-mono font-medium text-navy-800">{s.course_code}</td>
-                        <td className="px-4 py-2.5 text-navy-700">{s.course_name}</td>
-                        <td className="px-4 py-2.5 text-center text-navy-600">{s.credit_unit}</td>
-                        <td className="px-4 py-2.5 text-center font-semibold text-navy-800">{s.score}</td>
-                        <td className="px-4 py-2.5 text-center">
+                        <td className="px-3 py-2.5 font-mono font-medium text-navy-800">{s.course_code}</td>
+                        <td className="px-3 py-2.5 text-navy-700">{s.course_name}</td>
+                        <td className="px-3 py-2.5 text-center text-navy-600">{s.credit_unit}</td>
+                        <td className="px-3 py-2.5 text-center text-navy-700">{s.assignment ?? "—"}</td>
+                        <td className="px-3 py-2.5 text-center text-navy-700">{s.test ?? "—"}</td>
+                        <td className="px-3 py-2.5 text-center text-navy-700">{s.practical ?? "—"}</td>
+                        <td className="px-3 py-2.5 text-center text-navy-700">{s.exam ?? "—"}</td>
+                        <td className="px-3 py-2.5 text-center font-semibold text-navy-800">{s.score}</td>
+                        <td className="px-3 py-2.5 text-center">
                           <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-bold ${gradeColor(s.grade)}`}>
                             {s.grade}
                           </span>
                         </td>
-                        <td className="px-4 py-2.5 text-center font-semibold text-navy-800">{s.grade_point}</td>
+                        <td className="px-3 py-2.5 text-center font-semibold text-navy-800">{s.grade_point}</td>
                       </tr>
                     ))}
                     <tr className="bg-navy-50 border-t border-navy-200">
-                      <td colSpan={2} className="px-4 py-2.5 text-right font-semibold text-navy-700 text-xs uppercase tracking-wider">
+                      <td colSpan={2} className="px-3 py-2.5 text-right font-semibold text-navy-700 text-xs uppercase tracking-wider">
                         Semester Averages
                       </td>
-                      <td className="px-4 py-2.5 text-center font-semibold text-navy-700">{semTotalCU}</td>
-                      <td className="px-4 py-2.5 text-center font-semibold text-navy-700">{semAvgScore}</td>
+                      <td className="px-3 py-2.5 text-center font-semibold text-navy-700">{semTotalCU}</td>
+                      <td className="px-3 py-2.5 text-center text-navy-700">
+                        {semesterScores.some((s) => s.assignment !== undefined) && semesterScores.length > 0
+                          ? (semesterScores.reduce((sum, s) => sum + (s.assignment || 0), 0) / semesterScores.length).toFixed(1)
+                          : "—"}
+                      </td>
+                      <td className="px-3 py-2.5 text-center text-navy-700">
+                        {semesterScores.some((s) => s.test !== undefined)
+                          ? (semesterScores.reduce((sum, s) => sum + (s.test || 0), 0) / semesterScores.length).toFixed(1)
+                          : "—"}
+                      </td>
+                      <td className="px-3 py-2.5 text-center text-navy-700">
+                        {semesterScores.some((s) => s.practical !== undefined)
+                          ? (semesterScores.reduce((sum, s) => sum + (s.practical || 0), 0) / semesterScores.length).toFixed(1)
+                          : "—"}
+                      </td>
+                      <td className="px-3 py-2.5 text-center text-navy-700">
+                        {semesterScores.some((s) => s.exam !== undefined)
+                          ? (semesterScores.reduce((sum, s) => sum + (s.exam || 0), 0) / semesterScores.length).toFixed(1)
+                          : "—"}
+                      </td>
+                      <td className="px-3 py-2.5 text-center font-semibold text-navy-700">{semAvgScore}</td>
                       <td />
-                      <td className="px-4 py-2.5 text-center">
+                      <td className="px-3 py-2.5 text-center">
                         <span className="font-bold text-navy-800">{semGPA}</span>
                       </td>
                     </tr>

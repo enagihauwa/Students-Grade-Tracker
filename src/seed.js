@@ -55,6 +55,16 @@ const courses = [
   { name: "Database Systems", code: "CSC 204", cu: 3, sem: "Second", sess: "2023/2024", dept: "Computer Science" },
 ];
 
+function componentsFor(total) {
+  const p = total / 100;
+  return {
+    assignment: Math.round(Math.min(p, 1) * 10),
+    test: Math.round(Math.min(p, 1) * 20),
+    practical: Math.round(Math.min(p, 1) * 20),
+    exam: Math.round(Math.min(p, 1) * 50),
+  };
+}
+
 const scores = [
   { s: "2023/1/23456", c: "CSC 101", sc: 72 },
   { s: "2023/1/23456", c: "CSC 103", sc: 65 },
@@ -100,13 +110,9 @@ export default function seedData() {
 
   function addIfMissing(checkFn, addFn, item, map, keyField) {
     return checkFn(item.key).then((exists) => {
-      if (exists) {
-        return Promise.resolve(null);
-      }
+      if (exists) return Promise.resolve(null);
       return addFn(item.data).then((result) => {
-        if (result) {
-          map[result[keyField]] = result.id;
-        }
+        if (result) map[result[keyField]] = result.id;
         return result;
       });
     });
@@ -137,12 +143,7 @@ export default function seedData() {
           (d) => addStudent(d),
           {
             key: matric,
-            data: {
-              name: s.name,
-              matriculation_number: matric,
-              department: s.dept,
-              level: s.level,
-            },
+            data: { name: s.name, matriculation_number: matric, department: s.dept, level: s.level },
           },
           studentMap,
           "matriculation_number"
@@ -181,32 +182,28 @@ export default function seedData() {
       const studentId = studentMap[sc.s];
       const courseId = courseMap[sc.c];
       if (!studentId || !courseId) return chain;
-      return chain.then(() => saveScore({ student_id: studentId, course_id: courseId, score: sc.sc }));
+      return chain.then(() =>
+        saveScore({ student_id: studentId, course_id: courseId, ...componentsFor(sc.sc) })
+      );
     }, Promise.resolve());
   }
 
   function lookupExistingStudents() {
     return getStudents().then((existing) => {
-      existing.forEach((s) => {
-        studentMap[s.matriculation_number] = s.id;
-      });
+      existing.forEach((s) => { studentMap[s.matriculation_number] = s.id; });
     });
   }
 
   function lookupExistingCourses() {
     return getCourses().then((existing) => {
-      existing.forEach((c) => {
-        courseMap[c.course_code] = c.id;
-      });
+      existing.forEach((c) => { courseMap[c.course_code] = c.id; });
     });
   }
 
-  return (
-    departmentAdds()
-      .then(lookupExistingStudents)
-      .then(studentAdds)
-      .then(lookupExistingCourses)
-      .then(courseAdds)
-      .then(scoreAdds)
-  );
+  return departmentAdds()
+    .then(lookupExistingStudents)
+    .then(studentAdds)
+    .then(lookupExistingCourses)
+    .then(courseAdds)
+    .then(scoreAdds);
 }

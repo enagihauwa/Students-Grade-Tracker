@@ -293,10 +293,40 @@ export function getScores(studentId) {
 }
 
 export function saveScore(data) {
-  const parsedScore = Number(data.score);
-  const { grade, grade_point } = calculateGrade(parsedScore);
+  const assignment = Number(data.assignment) || 0;
+  const test = Number(data.test) || 0;
+  const practical = Number(data.practical) || 0;
+  const exam = Number(data.exam) || 0;
+  const total = Math.min(assignment + test + practical + exam, 100);
+  const { grade, grade_point } = calculateGrade(total);
   const studentId = Number(data.student_id);
   const courseId = Number(data.course_id);
+
+  const scoreData = {
+    student_id: studentId,
+    course_id: courseId,
+    assignment,
+    test,
+    practical,
+    exam,
+    score: total,
+    grade,
+    grade_point,
+  };
+
+  function enrich(record) {
+    return getCourses().then((courses) => {
+      const c = courses.find((co) => co.id === courseId);
+      return {
+        ...record,
+        course_name: c?.course_name || "",
+        course_code: c?.course_code || "",
+        credit_unit: c?.credit_unit || 0,
+        semester: c?.semester || "",
+        session: c?.session || "",
+      };
+    });
+  }
 
   return getByCompositeIndex("scores", "student_course", [studentId, courseId]).then(
     (existing) => {
@@ -305,50 +335,33 @@ export function saveScore(data) {
           return new Promise((resolve, reject) => {
             const tx = db.transaction("scores", "readwrite");
             const store = tx.objectStore("scores");
-            const score = existing[0];
-            score.score = parsedScore;
-            score.grade = grade;
-            score.grade_point = grade_point;
-            store.put(score);
-            tx.oncomplete = () => {
-              const courseRequest = tx.objectStore("courses").get(courseId);
-              courseRequest.onsuccess = () => {
-                db.close();
-                resolve({
-                  ...score,
-                  course_name: courseRequest.result?.course_name || "",
-                  course_code: courseRequest.result?.course_code || "",
-                  credit_unit: courseRequest.result?.credit_unit || 0,
-                  semester: courseRequest.result?.semester || "",
-                  session: courseRequest.result?.session || "",
-                });
-              };
-            };
+            const updated = { ...existing[0], ...scoreData, id: existing[0].id };
+            store.put(updated);
+            tx.oncomplete = () => { db.close(); resolve(enrich(updated)); };
             tx.onerror = () => { db.close(); reject(tx.error); };
           });
         });
-      } else {
-        return addRecord("scores", {
-          student_id: studentId,
-          course_id: courseId,
-          score: parsedScore,
-          grade,
-          grade_point,
-        }).then((newScore) =>
-          getCourses().then((courses) => {
-            const c = courses.find((co) => co.id === courseId);
-            return {
-              ...newScore,
-              course_name: c?.course_name || "",
-              course_code: c?.course_code || "",
-              credit_unit: c?.credit_unit || 0,
-              semester: c?.semester || "",
-              session: c?.session || "",
-            };
-          })
-        );
       }
+      return addRecord("scores", scoreData).then(enrich);
     }
+  );
+}
+
+export function getScoresByCourse(courseId) {
+  return getByIndex("scores", "course_id", Number(courseId)).then((scores) =>
+    getAll("students").then((students) => {
+      const studentMap = {};
+      students.forEach((s) => { studentMap[s.id] = s; });
+      return scores
+        .map((s) => ({
+          ...s,
+          student_name: studentMap[s.student_id]?.name || "",
+          matriculation_number: studentMap[s.student_id]?.matriculation_number || "",
+          department: studentMap[s.student_id]?.department || "",
+          level: studentMap[s.student_id]?.level || "",
+        }))
+        .sort((a, b) => a.student_name.localeCompare(b.student_name));
+    })
   );
 }
 

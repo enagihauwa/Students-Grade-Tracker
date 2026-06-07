@@ -6,6 +6,7 @@ import Courses from "./pages/Courses";
 import Scores from "./pages/Scores";
 import Results from "./pages/Results";
 import Departments from "./pages/Departments";
+import CourseReport from "./pages/CourseReport";
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
           <Route path="/results" element={<Results />} />
           <Route path="/results/:studentId" element={<Results />} />
           <Route path="/departments" element={<Departments />} />
+          <Route path="/course-report" element={<CourseReport />} />
         </Routes>
       </main>
     </div>
