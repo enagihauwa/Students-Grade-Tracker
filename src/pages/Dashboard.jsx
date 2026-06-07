@@ -32,7 +32,7 @@ export default function Dashboard() {
         setSeeding(false);
       })
       .catch(() => {
-        setSeedMsg({ type: "error", text: "Seeding failed. Data may already exist." });
+        setSeedMsg({ type: "error", text: "Seeding failed. Check console for details." });
         setSeeding(false);
       });
   };

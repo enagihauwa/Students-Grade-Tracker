@@ -237,6 +237,20 @@ export function checkMatricExists(matric) {
   );
 }
 
+export function checkCourseCodeExists(code) {
+  if (!code.trim()) return Promise.resolve(false);
+  return getByIndex("courses", "course_code", code.trim()).then(
+    (result) => result.length > 0
+  );
+}
+
+export function checkDepartmentExists(name) {
+  if (!name.trim()) return Promise.resolve(false);
+  return getByIndex("departments", "name", name.trim()).then(
+    (result) => result.length > 0
+  );
+}
+
 export function deleteCourse(id) {
   return openDb().then((db) => {
     return new Promise((resolve, reject) => {

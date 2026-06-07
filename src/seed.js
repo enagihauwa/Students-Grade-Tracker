@@ -1,4 +1,14 @@
-import { addDepartment, addStudent, addCourse, saveScore } from "./db";
+import {
+  addDepartment,
+  addStudent,
+  addCourse,
+  saveScore,
+  getStudents,
+  getCourses,
+  checkMatricExists,
+  checkCourseCodeExists,
+  checkDepartmentExists,
+} from "./db";
 
 const departments = [
   "Computer Science",
@@ -85,24 +95,118 @@ const scores = [
 ];
 
 export default function seedData() {
-  return departments
-    .reduce((chain, name) => chain.then(() => addDepartment(name)), Promise.resolve())
-    .then(() => {
-      let studentMap = {};
-      return Promise.all(students.map((s) =>
-        addStudent({ name: s.name, matriculation_number: s.matric, department: s.dept, level: s.level })
-          .then((st) => { studentMap[st.matriculation_number] = st.id; })
-      )).then(() => {
-        let courseMap = {};
-        return Promise.all(courses.map((c) =>
-          addCourse({ course_name: c.name, course_code: c.code, credit_unit: c.cu, semester: c.sem, session: c.sess, department: c.dept })
-            .then((co) => { courseMap[co.course_code] = co.id; })
-        )).then(() => {
-          return scores.reduce((chain, sc) =>
-            chain.then(() => saveScore({ student_id: studentMap[sc.s], course_id: courseMap[sc.c], score: sc.sc })),
-            Promise.resolve()
-          );
-        });
+  let studentMap = {};
+  let courseMap = {};
+
+  function addIfMissing(checkFn, addFn, item, map, keyField) {
+    return checkFn(item.key).then((exists) => {
+      if (exists) {
+        return Promise.resolve(null);
+      }
+      return addFn(item.data).then((result) => {
+        if (result) {
+          map[result[keyField]] = result.id;
+        }
+        return result;
       });
     });
+  }
+
+  function departmentAdds() {
+    return departments.reduce(
+      (chain, name) =>
+        chain.then(() =>
+          addIfMissing(
+            (n) => checkDepartmentExists(n),
+            (n) => addDepartment(n),
+            { key: name, data: name },
+            {},
+            "name"
+          )
+        ),
+      Promise.resolve()
+    );
+  }
+
+  function studentAdds() {
+    return students.reduce((chain, s) => {
+      const matric = s.matric;
+      return chain.then(() =>
+        addIfMissing(
+          (m) => checkMatricExists(m),
+          (d) => addStudent(d),
+          {
+            key: matric,
+            data: {
+              name: s.name,
+              matriculation_number: matric,
+              department: s.dept,
+              level: s.level,
+            },
+          },
+          studentMap,
+          "matriculation_number"
+        )
+      );
+    }, Promise.resolve());
+  }
+
+  function courseAdds() {
+    return courses.reduce((chain, c) => {
+      const code = c.code;
+      return chain.then(() =>
+        addIfMissing(
+          (co) => checkCourseCodeExists(co),
+          (d) => addCourse(d),
+          {
+            key: code,
+            data: {
+              course_name: c.name,
+              course_code: code,
+              credit_unit: c.cu,
+              semester: c.sem,
+              session: c.sess,
+              department: c.dept,
+            },
+          },
+          courseMap,
+          "course_code"
+        )
+      );
+    }, Promise.resolve());
+  }
+
+  function scoreAdds() {
+    return scores.reduce((chain, sc) => {
+      const studentId = studentMap[sc.s];
+      const courseId = courseMap[sc.c];
+      if (!studentId || !courseId) return chain;
+      return chain.then(() => saveScore({ student_id: studentId, course_id: courseId, score: sc.sc }));
+    }, Promise.resolve());
+  }
+
+  function lookupExistingStudents() {
+    return getStudents().then((existing) => {
+      existing.forEach((s) => {
+        studentMap[s.matriculation_number] = s.id;
+      });
+    });
+  }
+
+  function lookupExistingCourses() {
+    return getCourses().then((existing) => {
+      existing.forEach((c) => {
+        courseMap[c.course_code] = c.id;
+      });
+    });
+  }
+
+  return (
+    departmentAdds()
+      .then(lookupExistingStudents)
+      .then(studentAdds)
+      .then(lookupExistingCourses)
+      .then(courseAdds)
+      .then(scoreAdds)
+  );
 }
