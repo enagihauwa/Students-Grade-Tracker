@@ -2,17 +2,30 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import StatsCard from "../components/StatsCard";
 import GradeBadge from "../components/GradeBadge";
-import { getStudents } from "../utils/storage";
+import { getStudents, seedStudents } from "../utils/storage";
 import { computeStats, calculateGrade } from "../utils/grading";
 
 export default function Dashboard() {
   const [students, setStudents] = useState([]);
   const allCourses = ["Introduction to Computer Science", "Introduction to Programming"];
   const [courseFilter, setCourseFilter] = useState(allCourses[0]);
+  const [seeding, setSeeding] = useState(false);
+
+  const refresh = () => setStudents(getStudents());
 
   useEffect(() => {
     setStudents(getStudents());
   }, []);
+
+  const handleSeed = () => {
+    if (!window.confirm(
+      "This will replace ALL existing data with 130 sample students (50 in 100 Level, 80 in 200 Level) with realistic scores. Continue?"
+    )) return;
+    setSeeding(true);
+    const result = seedStudents();
+    refresh();
+    setSeeding(false);
+  };
 
   const filtered = students.filter((s) => s.course === courseFilter);
   const stats = computeStats(filtered);
@@ -35,12 +48,20 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold text-navy-900">Dashboard</h1>
           <p className="text-navy-500 mt-1">Lecturer performance overview</p>
         </div>
-        <Link to="/students" className="inline-flex items-center gap-2 px-4 py-2.5 bg-navy-600 text-white rounded-lg hover:bg-navy-700 transition-colors font-medium text-sm">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          Add Student
-        </Link>
+        <div className="flex items-center gap-2">
+          <button onClick={handleSeed} disabled={seeding} className="inline-flex items-center gap-2 px-4 py-2.5 border-2 border-gold-500 text-gold-700 rounded-lg hover:bg-gold-50 transition-colors font-medium text-sm disabled:opacity-50">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            {seeding ? "Seeding..." : "Seed Sample Data"}
+          </button>
+          <Link to="/students" className="inline-flex items-center gap-2 px-4 py-2.5 bg-navy-600 text-white rounded-lg hover:bg-navy-700 transition-colors font-medium text-sm">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Add Student
+          </Link>
+        </div>
       </div>
 
       {/* Course Selector */}
