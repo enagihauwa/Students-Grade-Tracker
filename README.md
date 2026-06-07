@@ -1,124 +1,127 @@
 # Student Grade Tracker
 
-A purpose-built academic management tool for Nigerian university lecturers. Manage students, courses, scores, and GPA calculations — all offline, all local.
+A full-stack academic management tool for Nigerian university lecturers. Manage 130 students across two courses, handle score entry, auto-calculate grades using the Nigerian grading system, and generate reports.
 
-Built for lecturers at the University of Abuja, Ahmadu Bello University Zaria, University of Lagos, and every other Nigerian university where grade computation needs to be fast, accurate, and professional.
+## Tech Stack
+
+- **Frontend**: React + Vite + Tailwind CSS
+- **Backend**: Node.js + Express
+- **Database**: SQLite3 (via sql.js)
 
 ## Features
 
-- **Student Management** — Register students with name, matriculation number, department, and level
-- **Course Management** — Add courses with course codes, credit units, semester, and academic session
-- **Score Entry** — Enter scores per student per course with automatic grade assignment using the Nigerian university grading scale
-- **GPA Calculation** — Weighted GPA computed automatically using credit units
-- **Result Sheets** — Printable academic result sheets per student with full course breakdown and final GPA
-- **Dashboard** — Overview of all students, courses, departments, and level distribution
-- **Offline** — Everything runs locally. No internet required after installation.
+### Student Management
+- Add, edit, delete students
+- Filter by level (100 / 200)
+- Search by name or matric number
+
+### Score Entry
+- Input scores per student: Assignment (10), Test (20), Practical (20), Exam (50)
+- Auto-calculates total score, letter grade, and grade point
+- Edit existing scores
+
+### Live Dashboard
+- Total number of students per level
+- Class average score per course
+- Grade distribution breakdown (A, B, C, D, E, F)
+- Top 5 performing students per course
+- Pass/fail rate (pass = score ≥ 40)
+
+### Reports
+- Full result table per course/level with columns: Matric No, Name, Assignment, Test, Practical, Exam, Total, Grade, Grade Point
+- Sort by total score, name, grade
+- Filter by grade
+- Export to CSV
 
 ## Nigerian University Grading Scale
 
 | Score   | Grade | Grade Point |
-| ------- | ----- | ----------- |
-| 70–100  | A     | 5           |
-| 60–69   | B     | 4           |
-| 50–59   | C     | 3           |
-| 45–49   | D     | 2           |
-| 40–44   | E     | 1           |
-| 0–39    | F     | 0           |
+|---------|-------|-------------|
+| 70–100  | A     | 5.0         |
+| 60–69   | B     | 4.0         |
+| 50–59   | C     | 3.0         |
+| 45–49   | D     | 2.0         |
+| 40–44   | E     | 1.0         |
+| 0–39    | F     | 0.0         |
 
-**GPA Formula**: Weighted GPA = Sum(Grade Point × Credit Unit) / Sum(Credit Unit)
+## Score Breakdown
 
-## Prerequisites
-
-- [Node.js](https://nodejs.org/) (v18 or higher)
-- npm (comes with Node.js)
+| Assessment | Max Score |
+|------------|-----------|
+| Assignment | 10        |
+| Test       | 20        |
+| Practical  | 20        |
+| Exam       | 50        |
+| **Total**  | **100**   |
 
 ## Setup Instructions
 
-### 1. Install Server Dependencies
+### Prerequisites
 
-Open a terminal in the project root and run:
+- Node.js (v18 or higher)
+- npm
+
+### Install & Run
 
 ```bash
-cd server
+# Install all dependencies
 npm install
-```
 
-### 2. Install Client Dependencies
-
-Open a second terminal in the project root and run:
-
-```bash
-cd client
-npm install
-```
-
-### 3. Start the Backend Server
-
-```bash
-cd server
-npm start
-```
-
-The server will start on `http://localhost:5000`. The SQLite database file (`database.db`) is created automatically the first time the server runs.
-
-### 4. Start the React Frontend
-
-```bash
-cd client
+# Start both Express (port 5000) and Vite (port 5173)
 npm run dev
 ```
 
-The frontend will start on `http://localhost:3000` and automatically proxy API requests to the backend.
+The database is auto-created and seeded with:
+- **50 students** for 100 Level — Introduction to Computer Science
+- **80 students** for 200 Level — Introduction to Programming
+- Random but realistic scores for all students
 
-### 5. Open the App
+Vite proxies `/api` requests to Express, so there are no CORS issues.
 
-Visit **http://localhost:3000** in your browser.
+Open **http://localhost:5173** in your browser.
 
-## Usage Guide
+## API Endpoints
 
-1. **Dashboard** — See an overview of students, courses, departments, and levels at a glance
-2. **Students** — Add new students, search by name or matric number, delete students
-3. **Courses** — Add courses organized by academic session and semester
-4. **Scores** — Select a student and course, enter a score (0–100), and the grade is assigned automatically
-5. **Results** — View a full, printable result sheet per student with all courses, scores, grades, and GPA
+| Method | Endpoint                     | Description                        |
+|--------|------------------------------|------------------------------------|
+| GET    | `/api/students`              | List all students (?level=100\|200) |
+| POST   | `/api/students`              | Add new student                    |
+| PUT    | `/api/students/:id`          | Update student                     |
+| DELETE | `/api/students/:id`          | Delete student                     |
+| GET    | `/api/scores`                | List all scores (?level=100\|200)  |
+| GET    | `/api/scores/:studentId`     | Get scores for one student         |
+| POST   | `/api/scores/:studentId`     | Add/update scores for a student    |
+| DELETE | `/api/scores/:id`            | Delete a score entry               |
+| GET    | `/api/reports/summary`       | Dashboard stats                    |
+| GET    | `/api/reports/:level`        | Full result table for a level      |
+| GET    | `/api/reports/export?level=` | Export CSV for a level             |
 
 ## Project Structure
 
 ```
 student-grade-tracker/
-├── client/                  # React frontend (Vite + Tailwind CSS)
-│   ├── public/
-│   ├── src/
-│   │   ├── components/      # Navbar, EmptyState
-│   │   └── pages/           # Dashboard, Students, Courses, Scores, Results
-│   ├── package.json
-│   ├── vite.config.js
-│   └── tailwind.config.js
-├── server/                  # Node.js + Express backend
-│   ├── index.js             # API routes and SQLite database setup
-│   ├── database.db          # SQLite database (auto-created)
-│   └── package.json
+├── server/
+│   ├── index.js           # Express entry point
+│   ├── db.js              # SQLite3 setup, schema init & seed
+│   ├── db-helpers.js      # Query helpers for sql.js
+│   ├── grading.js         # Nigerian grading logic
+│   └── routes/
+│       ├── students.js
+│       ├── scores.js
+│       └── reports.js
+├── src/                   # React frontend (Vite)
+│   ├── App.jsx
+│   ├── api.js             # Fetch wrapper for all endpoints
+│   ├── pages/
+│   │   ├── Dashboard.jsx
+│   │   ├── Students.jsx
+│   │   ├── Scores.jsx
+│   │   └── Reports.jsx
+│   └── components/
+│       ├── Navbar.jsx
+│       ├── ConfirmModal.jsx
+│       └── EmptyState.jsx
+├── package.json           # Root — runs both server + client via concurrently
+├── vite.config.js
 └── README.md
 ```
-
-## API Endpoints
-
-| Method | Endpoint                | Description                         |
-| ------ | ----------------------- | ----------------------------------- |
-| GET    | `/api/students`         | Fetch all students                  |
-| POST   | `/api/students`         | Add a new student                   |
-| DELETE | `/api/students/:id`     | Remove a student                    |
-| GET    | `/api/courses`          | Fetch all courses                   |
-| POST   | `/api/courses`          | Add a new course                    |
-| DELETE | `/api/courses/:id`      | Remove a course                     |
-| POST   | `/api/scores`           | Enter/update a score                |
-| GET    | `/api/scores/:student_id` | Fetch scores for a student        |
-| GET    | `/api/gpa/:student_id`  | Calculate weighted GPA for a student |
-| GET    | `/api/students/search?q=` | Search students by name or matric |
-| GET    | `/api/dashboard`        | Get dashboard overview data         |
-
-## Technology Stack
-
-- **Frontend**: React, React Router, Tailwind CSS, Vite
-- **Backend**: Node.js, Express
-- **Database**: SQLite3 (via better-sqlite3)
