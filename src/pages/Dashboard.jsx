@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import StatsCard from "../components/StatsCard";
 import GradeBadge from "../components/GradeBadge";
-import { getStudents, seedStudents } from "../utils/storage";
+import { getStudents, seedStudents, clearStudents } from "../utils/storage";
 import { computeStats, calculateGrade } from "../utils/grading";
 
 export default function Dashboard() {
@@ -10,6 +10,7 @@ export default function Dashboard() {
   const allCourses = ["Introduction to Computer Science", "Introduction to Programming"];
   const [courseFilter, setCourseFilter] = useState(allCourses[0]);
   const [seeding, setSeeding] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   const refresh = () => setStudents(getStudents());
 
@@ -22,9 +23,17 @@ export default function Dashboard() {
       "This will replace ALL existing data with 130 sample students (50 in 100 Level, 80 in 200 Level) with realistic scores. Continue?"
     )) return;
     setSeeding(true);
-    const result = seedStudents();
+    seedStudents();
     refresh();
     setSeeding(false);
+  };
+
+  const handleClear = () => {
+    if (!window.confirm("Delete ALL student data permanently? This cannot be undone.")) return;
+    setClearing(true);
+    clearStudents();
+    refresh();
+    setClearing(false);
   };
 
   const filtered = students.filter((s) => s.course === courseFilter);
@@ -55,6 +64,14 @@ export default function Dashboard() {
             </svg>
             {seeding ? "Seeding..." : "Seed Sample Data"}
           </button>
+          {students.length > 0 && (
+            <button onClick={handleClear} disabled={clearing} className="inline-flex items-center gap-2 px-4 py-2.5 border-2 border-red-400 text-red-700 rounded-lg hover:bg-red-50 transition-colors font-medium text-sm disabled:opacity-50">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              {clearing ? "Clearing..." : "Clear All Data"}
+            </button>
+          )}
           <Link to="/students" className="inline-flex items-center gap-2 px-4 py-2.5 bg-navy-600 text-white rounded-lg hover:bg-navy-700 transition-colors font-medium text-sm">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />

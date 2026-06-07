@@ -6,6 +6,7 @@ export default function Students() {
   const [students, setStudents] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [levelFilter, setLevelFilter] = useState("all");
 
   const refresh = () => setStudents(getStudents());
 
@@ -31,6 +32,7 @@ export default function Students() {
 
   const lvl100 = students.filter((s) => Number(s.level) === 100);
   const lvl200 = students.filter((s) => Number(s.level) === 200);
+  const filtered = levelFilter === "all" ? students : students.filter((s) => s.level === levelFilter);
 
   function StudentTable({ list, level, color }) {
     if (list.length === 0) return null;
@@ -96,6 +98,28 @@ export default function Students() {
         </button>
       </div>
 
+      {students.length > 0 && (
+        <div className="flex flex-wrap gap-3 text-sm">
+          {[
+            { key: "all", label: `All Levels`, count: students.length, color: "bg-gold-500", activeColor: "bg-gold-500" },
+            { key: "100", label: "100 Level", count: lvl100.length, color: "bg-navy-600", activeColor: "bg-navy-600" },
+            { key: "200", label: "200 Level", count: lvl200.length, color: "bg-navy-800", activeColor: "bg-navy-800" },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setLevelFilter(tab.key)}
+              className={`px-4 py-1.5 rounded-full font-medium transition-all ${
+                levelFilter === tab.key
+                  ? `${tab.activeColor} text-white ring-2 ring-offset-1 ring-navy-300`
+                  : `${tab.color}/20 text-navy-600 hover:${tab.color}/30`
+              }`}
+            >
+              {tab.label}: {tab.count}
+            </button>
+          ))}
+        </div>
+      )}
+
       {showForm && (
         <div className="fixed inset-0 bg-black/40 z-50 overflow-y-auto" onClick={() => { setShowForm(false); setEditing(null); }}>
           <div className="min-h-full flex items-center justify-center p-4">
@@ -133,8 +157,18 @@ export default function Students() {
         </div>
       ) : (
         <div className="space-y-6">
-          <StudentTable list={lvl100} level="100" color="bg-navy-600 text-white" />
-          <StudentTable list={lvl200} level="200" color="bg-navy-800 text-white" />
+          {levelFilter === "all" ? (
+            <>
+              {lvl100.length > 0 && <StudentTable list={lvl100} level="100" color="bg-navy-600 text-white" />}
+              {lvl200.length > 0 && <StudentTable list={lvl200} level="200" color="bg-navy-800 text-white" />}
+            </>
+          ) : (
+            <StudentTable
+              list={filtered}
+              level={levelFilter}
+              color={levelFilter === "100" ? "bg-navy-600 text-white" : "bg-navy-800 text-white"}
+            />
+          )}
         </div>
       )}
     </div>

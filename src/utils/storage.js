@@ -142,6 +142,10 @@ function generateStudentsForLevel(level, count) {
   return students;
 }
 
+export function clearStudents() {
+  save([]);
+}
+
 export function seedStudents() {
   const l100 = generateStudentsForLevel("100", 50);
   const l200 = generateStudentsForLevel("200", 80);
