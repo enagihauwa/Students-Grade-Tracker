@@ -174,6 +174,7 @@ export default function Results() {
             const semTotalGP = semesterScores.reduce((sum, s) => sum + s.grade_point * s.credit_unit, 0);
             const semTotalCU = semesterScores.reduce((sum, s) => sum + s.credit_unit, 0);
             const semGPA = semTotalCU > 0 ? (semTotalGP / semTotalCU).toFixed(2) : "0.00";
+            const semAvgScore = (semesterScores.reduce((sum, s) => sum + s.score, 0) / semesterScores.length).toFixed(1);
 
             return (
               <div key={key}>
@@ -208,10 +209,11 @@ export default function Results() {
                     ))}
                     <tr className="bg-navy-50 border-t border-navy-200">
                       <td colSpan={2} className="px-4 py-2.5 text-right font-semibold text-navy-700 text-xs uppercase tracking-wider">
-                        Semester GPA
+                        Semester Averages
                       </td>
                       <td className="px-4 py-2.5 text-center font-semibold text-navy-700">{semTotalCU}</td>
-                      <td colSpan={2} />
+                      <td className="px-4 py-2.5 text-center font-semibold text-navy-700">{semAvgScore}</td>
+                      <td />
                       <td className="px-4 py-2.5 text-center">
                         <span className="font-bold text-navy-800">{semGPA}</span>
                       </td>
@@ -226,6 +228,9 @@ export default function Results() {
             <div className="text-sm text-navy-200 space-y-1">
               <p>Total Credit Units: <span className="font-semibold text-white">{gpa?.total_credit_units || 0}</span></p>
               <p>Total Grade Points: <span className="font-semibold text-white">{gpa?.total_grade_points || 0}</span></p>
+              <p>Overall Average Score: <span className="font-semibold text-white">
+                {scores.length > 0 ? (scores.reduce((sum, s) => sum + s.score, 0) / scores.length).toFixed(1) : "—"}
+              </span></p>
             </div>
             <div className="text-right">
               <p className="text-xs text-navy-300 uppercase tracking-wider">Weighted GPA</p>
