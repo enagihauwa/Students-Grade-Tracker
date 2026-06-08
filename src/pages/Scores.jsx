@@ -13,9 +13,8 @@ export default function Scores() {
 
   useEffect(() => { refresh(); }, []);
 
+  const allCourses = [...new Set(students.map((s) => s.course))].sort();
   const filtered = courseFilter === "all" ? students : students.filter((s) => s.course === courseFilter);
-
-  const allCourses = ["Introduction to Computer Science", "Introduction to Programming"];
 
   const handleSaveScores = ({ assignment, test, exam }) => {
     try {

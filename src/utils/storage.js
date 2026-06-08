@@ -146,6 +146,39 @@ export function clearStudents() {
   save([]);
 }
 
+const COURSES_KEY = "gradeTrackerCourses";
+
+export function getCourses() {
+  try {
+    const raw = localStorage.getItem(COURSES_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveCourses(data) {
+  localStorage.setItem(COURSES_KEY, JSON.stringify(data));
+}
+
+export function addCourse(name, score) {
+  const courses = getCourses();
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  courses.push({ id, name, score: Number(score) });
+  saveCourses(courses);
+  return courses;
+}
+
+export function deleteCourse(id) {
+  const courses = getCourses().filter((c) => c.id !== id);
+  saveCourses(courses);
+  return courses;
+}
+
+export function clearCourses() {
+  saveCourses([]);
+}
+
 export function seedStudents() {
   const l100 = generateStudentsForLevel("100", 50);
   const l200 = generateStudentsForLevel("200", 80);

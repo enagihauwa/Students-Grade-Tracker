@@ -2,13 +2,13 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import StatsCard from "../components/StatsCard";
 import GradeBadge from "../components/GradeBadge";
+import CourseTracker from "../components/CourseTracker";
 import { getStudents, seedStudents, clearStudents } from "../utils/storage";
 import { computeStats, calculateGrade } from "../utils/grading";
 
 export default function Dashboard() {
   const [students, setStudents] = useState([]);
-  const allCourses = ["Introduction to Computer Science", "Introduction to Programming"];
-  const [courseFilter, setCourseFilter] = useState(allCourses[0]);
+  const [courseFilter, setCourseFilter] = useState("all");
   const [seeding, setSeeding] = useState(false);
   const [clearing, setClearing] = useState(false);
 
@@ -36,7 +36,8 @@ export default function Dashboard() {
     setClearing(false);
   };
 
-  const filtered = students.filter((s) => s.course === courseFilter);
+  const allCourses = [...new Set(students.map((s) => s.course))].sort();
+  const filtered = courseFilter === "all" ? students : students.filter((s) => s.course === courseFilter);
   const stats = computeStats(filtered);
   const gradeDist = stats.gradeDistribution;
   const totalGradeCount = Object.values(gradeDist).reduce((a, b) => a + b, 0);
@@ -81,17 +82,19 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Course Selector */}
-      <div className="flex items-center gap-3">
-        <label className="text-sm font-medium text-navy-700">Filter by course:</label>
-        <select
-          value={courseFilter}
-          onChange={(e) => setCourseFilter(e.target.value)}
-          className="px-3 py-2 border border-navy-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 text-navy-800 bg-white text-sm"
-        >
-          {allCourses.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
-      </div>
+      {allCourses.length > 0 && (
+        <div className="flex items-center gap-3">
+          <label className="text-sm font-medium text-navy-700">Filter by course:</label>
+          <select
+            value={courseFilter}
+            onChange={(e) => setCourseFilter(e.target.value)}
+            className="px-3 py-2 border border-navy-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 text-navy-800 bg-white text-sm"
+          >
+            <option value="all">All Courses</option>
+            {allCourses.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -184,29 +187,34 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Course Tracker */}
+      <CourseTracker />
+
       {/* Course Averages */}
-      <div className="bg-white rounded-xl shadow-sm border border-navy-100 p-6">
-        <h2 className="text-lg font-semibold text-navy-800 mb-4">Course Averages</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {allCourses.map((course) => {
-            const courseStudents = students.filter((s) => s.course === course);
-            const courseStats = computeStats(courseStudents);
-            const totalMax = courseStudents.reduce((s, st) => s + (st.total ?? 0), 0);
-            const avg = courseStudents.length > 0 ? (totalMax / courseStudents.length).toFixed(1) : "—";
-            return (
-              <div key={course} className="p-4 bg-navy-50 rounded-lg border border-navy-100">
-                <p className="font-semibold text-navy-800 text-sm">{course}</p>
-                <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-                  <div><span className="text-navy-500">Students:</span> <span className="font-medium">{courseStats.totalStudents}</span></div>
-                  <div><span className="text-navy-500">Average:</span> <span className="font-medium">{avg}%</span></div>
-                  <div><span className="text-navy-500">Highest:</span> <span className="font-medium">{courseStats.highestScore}</span></div>
-                  <div><span className="text-navy-500">Lowest:</span> <span className="font-medium">{courseStats.lowestScore}</span></div>
+      {allCourses.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-navy-100 p-6">
+          <h2 className="text-lg font-semibold text-navy-800 mb-4">Course Averages</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {allCourses.map((course) => {
+              const courseStudents = students.filter((s) => s.course === course);
+              const courseStats = computeStats(courseStudents);
+              const totalMax = courseStudents.reduce((s, st) => s + (st.total ?? 0), 0);
+              const avg = courseStudents.length > 0 ? (totalMax / courseStudents.length).toFixed(1) : "—";
+              return (
+                <div key={course} className="p-4 bg-navy-50 rounded-lg border border-navy-100">
+                  <p className="font-semibold text-navy-800 text-sm">{course}</p>
+                  <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                    <div><span className="text-navy-500">Students:</span> <span className="font-medium">{courseStats.totalStudents}</span></div>
+                    <div><span className="text-navy-500">Average:</span> <span className="font-medium">{avg}%</span></div>
+                    <div><span className="text-navy-500">Highest:</span> <span className="font-medium">{courseStats.highestScore}</span></div>
+                    <div><span className="text-navy-500">Lowest:</span> <span className="font-medium">{courseStats.lowestScore}</span></div>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
