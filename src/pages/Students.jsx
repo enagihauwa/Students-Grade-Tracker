@@ -49,7 +49,6 @@ export default function Students() {
                 <th className="px-4 py-3 font-semibold">S/N</th>
                 <th className="px-4 py-3 font-semibold">Name</th>
                 <th className="px-4 py-3 font-semibold">Matric No</th>
-                <th className="px-4 py-3 font-semibold">Course</th>
                 <th className="px-4 py-3 font-semibold text-right">Action</th>
               </tr>
             </thead>
@@ -59,7 +58,6 @@ export default function Students() {
                   <td className="px-4 py-3 text-navy-400 text-xs">{i + 1}</td>
                   <td className="px-4 py-3 font-medium text-navy-800">{s.name}</td>
                   <td className="px-4 py-3 font-mono text-navy-600">{s.matric_number}</td>
-                  <td className="px-4 py-3 text-navy-600 text-xs max-w-[250px] truncate">{s.course}</td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
                       <button onClick={() => { setEditing(s); setShowForm(true); }} className="text-navy-500 hover:text-navy-700 p-1.5 rounded-lg hover:bg-navy-50" title="Edit">
@@ -134,7 +132,7 @@ export default function Students() {
               </div>
               <StudentForm
                 key={editing?.id || "new"}
-                initial={editing ? { name: editing.name, matric_number: editing.matric_number, level: String(editing.level), course: editing.course } : null}
+                initial={editing ? { name: editing.name, matric_number: editing.matric_number, level: String(editing.level), course: editing.course || "" } : null}
                 onSubmit={handleSubmit}
                 onCancel={() => { setShowForm(false); setEditing(null); }}
               />

@@ -5,16 +5,17 @@ import { getStudents, updateScores } from "../utils/storage";
 
 export default function Scores() {
   const [students, setStudents] = useState([]);
-  const [courseFilter, setCourseFilter] = useState("all");
   const [scoringStudent, setScoringStudent] = useState(null);
   const [message, setMessage] = useState(null);
+  const [levelFilter, setLevelFilter] = useState("all");
 
   const refresh = () => setStudents(getStudents());
 
   useEffect(() => { refresh(); }, []);
 
-  const allCourses = [...new Set(students.map((s) => s.course))].sort();
-  const filtered = courseFilter === "all" ? students : students.filter((s) => s.course === courseFilter);
+  const lvl100 = students.filter((s) => Number(s.level) === 100);
+  const lvl200 = students.filter((s) => Number(s.level) === 200);
+  const filtered = levelFilter === "all" ? students : students.filter((s) => s.level === levelFilter);
 
   const handleSaveScores = ({ assignment, test, exam }) => {
     try {
@@ -59,19 +60,28 @@ export default function Scores() {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-navy-700">Course:</label>
-          <select value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)} className="px-3 py-2 border border-navy-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 text-navy-800 bg-white text-sm">
-            <option value="all">All Courses</option>
-            {allCourses.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
+      {students.length > 0 && (
+        <div className="flex flex-wrap gap-3 text-sm items-center">
+          {[
+            { key: "all", label: "All Levels", count: students.length, activeColor: "bg-gold-500" },
+            { key: "100", label: "100 Level", count: lvl100.length, activeColor: "bg-navy-600" },
+            { key: "200", label: "200 Level", count: lvl200.length, activeColor: "bg-navy-800" },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setLevelFilter(tab.key)}
+              className={`px-4 py-1.5 rounded-full font-medium transition-all ${
+                levelFilter === tab.key
+                  ? `${tab.activeColor} text-white ring-2 ring-offset-1 ring-navy-300`
+                  : "bg-navy-100 text-navy-600 hover:bg-navy-200"
+              }`}
+            >
+              {tab.label}
+              <span className="ml-1.5 opacity-75">({tab.count})</span>
+            </button>
+          ))}
         </div>
-        <div className="text-sm text-navy-500 self-center ml-auto">
-          {filtered.length} student{filtered.length !== 1 ? "s" : ""}
-        </div>
-      </div>
+      )}
 
       {/* Students Table with inline edit button */}
       <div className="bg-white rounded-xl shadow-sm border border-navy-100 overflow-hidden">

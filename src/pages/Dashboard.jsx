@@ -2,14 +2,12 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import StatsCard from "../components/StatsCard";
 import GradeBadge from "../components/GradeBadge";
-import CourseTracker from "../components/CourseTracker";
-import { getStudents, seedStudents, clearStudents } from "../utils/storage";
+import { getStudents, clearStudents, seedStudents } from "../utils/storage";
+import sampleStudents from "../utils/seed";
 import { computeStats, calculateGrade } from "../utils/grading";
 
 export default function Dashboard() {
   const [students, setStudents] = useState([]);
-  const [courseFilter, setCourseFilter] = useState("all");
-  const [seeding, setSeeding] = useState(false);
   const [clearing, setClearing] = useState(false);
 
   const refresh = () => setStudents(getStudents());
@@ -17,16 +15,6 @@ export default function Dashboard() {
   useEffect(() => {
     setStudents(getStudents());
   }, []);
-
-  const handleSeed = () => {
-    if (!window.confirm(
-      "This will replace ALL existing data with 130 sample students (50 in 100 Level, 80 in 200 Level) with realistic scores. Continue?"
-    )) return;
-    setSeeding(true);
-    seedStudents();
-    refresh();
-    setSeeding(false);
-  };
 
   const handleClear = () => {
     if (!window.confirm("Delete ALL student data permanently? This cannot be undone.")) return;
@@ -36,11 +24,11 @@ export default function Dashboard() {
     setClearing(false);
   };
 
-  const allCourses = [...new Set(students.map((s) => s.course))].sort();
-  const filtered = courseFilter === "all" ? students : students.filter((s) => s.course === courseFilter);
-  const stats = computeStats(filtered);
+  const stats = computeStats(students);
   const gradeDist = stats.gradeDistribution;
   const totalGradeCount = Object.values(gradeDist).reduce((a, b) => a + b, 0);
+
+  const coursesOffered = [...new Set(students.map((s) => s.course).filter(Boolean))];
 
   const gradeColors = {
     A: "bg-green-100 text-green-800 border-green-200",
@@ -59,18 +47,20 @@ export default function Dashboard() {
           <p className="text-navy-500 mt-1">Lecturer performance overview</p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={handleSeed} disabled={seeding} className="inline-flex items-center gap-2 px-4 py-2.5 border-2 border-gold-500 text-gold-700 rounded-lg hover:bg-gold-50 transition-colors font-medium text-sm disabled:opacity-50">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            {seeding ? "Seeding..." : "Seed Sample Data"}
-          </button>
           {students.length > 0 && (
             <button onClick={handleClear} disabled={clearing} className="inline-flex items-center gap-2 px-4 py-2.5 border-2 border-red-400 text-red-700 rounded-lg hover:bg-red-50 transition-colors font-medium text-sm disabled:opacity-50">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
               {clearing ? "Clearing..." : "Clear All Data"}
+            </button>
+          )}
+          {students.length === 0 && (
+            <button onClick={() => setStudents(seedStudents(sampleStudents))} className="inline-flex items-center gap-2 px-4 py-2.5 bg-gold-500 text-navy-900 rounded-lg hover:bg-gold-400 transition-colors font-medium text-sm">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              Seed Sample Data
             </button>
           )}
           <Link to="/students" className="inline-flex items-center gap-2 px-4 py-2.5 bg-navy-600 text-white rounded-lg hover:bg-navy-700 transition-colors font-medium text-sm">
@@ -81,20 +71,6 @@ export default function Dashboard() {
           </Link>
         </div>
       </div>
-
-      {allCourses.length > 0 && (
-        <div className="flex items-center gap-3">
-          <label className="text-sm font-medium text-navy-700">Filter by course:</label>
-          <select
-            value={courseFilter}
-            onChange={(e) => setCourseFilter(e.target.value)}
-            className="px-3 py-2 border border-navy-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 text-navy-800 bg-white text-sm"
-          >
-            <option value="all">All Courses</option>
-            {allCourses.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -125,6 +101,23 @@ export default function Dashboard() {
           color="bg-red-600"
         />
       </div>
+
+      {coursesOffered.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-navy-100 p-6">
+          <h2 className="text-lg font-semibold text-navy-800 mb-4">Courses Offered</h2>
+          <div className="flex flex-wrap gap-2">
+            {coursesOffered.map((course) => {
+              const count = students.filter((s) => s.course === course).length;
+              return (
+                <span key={course} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-navy-50 border border-navy-200 text-sm font-medium text-navy-700">
+                  {course}
+                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-navy-600 text-white text-xs font-bold">{count}</span>
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Grade Distribution */}
@@ -187,34 +180,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Course Tracker */}
-      <CourseTracker />
 
-      {/* Course Averages */}
-      {allCourses.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-navy-100 p-6">
-          <h2 className="text-lg font-semibold text-navy-800 mb-4">Course Averages</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {allCourses.map((course) => {
-              const courseStudents = students.filter((s) => s.course === course);
-              const courseStats = computeStats(courseStudents);
-              const totalMax = courseStudents.reduce((s, st) => s + (st.total ?? 0), 0);
-              const avg = courseStudents.length > 0 ? (totalMax / courseStudents.length).toFixed(1) : "—";
-              return (
-                <div key={course} className="p-4 bg-navy-50 rounded-lg border border-navy-100">
-                  <p className="font-semibold text-navy-800 text-sm">{course}</p>
-                  <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-                    <div><span className="text-navy-500">Students:</span> <span className="font-medium">{courseStats.totalStudents}</span></div>
-                    <div><span className="text-navy-500">Average:</span> <span className="font-medium">{avg}%</span></div>
-                    <div><span className="text-navy-500">Highest:</span> <span className="font-medium">{courseStats.highestScore}</span></div>
-                    <div><span className="text-navy-500">Lowest:</span> <span className="font-medium">{courseStats.lowestScore}</span></div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

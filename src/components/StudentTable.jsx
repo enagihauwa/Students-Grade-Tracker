@@ -37,7 +37,7 @@ export default function StudentTable({ students, onEdit, onDelete, onScoreEdit }
                 <td className="px-3 py-3 font-medium text-navy-800">{s.name}</td>
                 <td className="px-3 py-3 font-mono text-navy-600">{s.matric_number}</td>
                 <td className="px-3 py-3"><span className="bg-navy-100 text-navy-700 px-2 py-0.5 rounded-full text-xs font-medium">{s.level}</span></td>
-                <td className="px-3 py-3 text-navy-600 text-xs max-w-[200px] truncate">{s.course}</td>
+                <td className="px-3 py-3 text-navy-600 text-xs max-w-[160px] truncate">{s.course || "—"}</td>
                 <td className="px-3 py-3 text-center text-navy-700">{s.assignment ?? "—"}</td>
                 <td className="px-3 py-3 text-center text-navy-700">{s.test ?? "—"}</td>
                 <td className="px-3 py-3 text-center text-navy-700">{s.exam ?? "—"}</td>

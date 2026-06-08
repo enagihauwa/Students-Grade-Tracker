@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Dashboard from "./pages/Dashboard";
 import Students from "./pages/Students";
+import Courses from "./pages/Courses";
 import Scores from "./pages/Scores";
 import Reports from "./pages/Reports";
 
@@ -13,6 +14,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/students" element={<Students />} />
+          <Route path="/courses" element={<Courses />} />
           <Route path="/scores" element={<Scores />} />
           <Route path="/reports" element={<Reports />} />
         </Routes>

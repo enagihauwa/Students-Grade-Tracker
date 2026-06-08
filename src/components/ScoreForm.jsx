@@ -42,7 +42,7 @@ export default function ScoreForm({ student, onSubmit, onCancel }) {
       {error && <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{error}</div>}
       <div className="bg-navy-50 rounded-lg p-3">
         <p className="font-semibold text-navy-800">{student.name}</p>
-        <p className="text-sm text-navy-500">{student.matric_number} — {student.level} Level</p>
+        <p className="text-sm text-navy-500">{student.matric_number} — {student.level} Level {student.course ? `— ${student.course}` : ""}</p>
       </div>
       <div className="grid grid-cols-3 gap-3">
         <div>
