@@ -8,14 +8,17 @@ export default function Reports() {
   const [students, setStudents] = useState([]);
   const [sortField, setSortField] = useState("total");
   const [sortDir, setSortDir] = useState("desc");
+  const [levelFilter, setLevelFilter] = useState("All");
 
   useEffect(() => {
     setStudents(getStudents());
   }, []);
 
-  const stats = computeStats(students);
+  const levels = [...new Set(students.map((s) => s.level).filter(Boolean))].sort();
+  const filtered = levelFilter === "All" ? students : students.filter((s) => s.level === levelFilter);
+  const stats = computeStats(filtered);
 
-  const sorted = [...students].sort((a, b) => {
+  const sorted = [...filtered].sort((a, b) => {
     const va = a[sortField] ?? 0;
     const vb = b[sortField] ?? 0;
     if (typeof va === "string") {
@@ -52,6 +55,21 @@ export default function Reports() {
           <p className="text-navy-500 mt-1">Performance summaries and analytics</p>
         </div>
       </div>
+
+      {/* Level Filter Buttons */}
+      {levels.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-navy-500 uppercase tracking-wider mr-1">Level:</span>
+          <button onClick={() => setLevelFilter("All")} className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${levelFilter === "All" ? "bg-navy-600 text-white" : "bg-navy-50 text-navy-700 hover:bg-navy-100 border border-navy-200"}`}>
+            All
+          </button>
+          {levels.map((level) => (
+            <button key={level} onClick={() => setLevelFilter(level)} className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${levelFilter === level ? "bg-navy-600 text-white" : "bg-navy-50 text-navy-700 hover:bg-navy-100 border border-navy-200"}`}>
+              {level} Level
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Summary Cards */}
       {students.length > 0 && (
@@ -101,7 +119,7 @@ export default function Reports() {
           <>
             <div className="bg-navy-50 px-4 py-3 border-b border-navy-100 flex items-center justify-between">
               <h2 className="font-semibold text-navy-800 text-sm">Student Performance</h2>
-              <span className="text-xs text-navy-500">{students.length} student{students.length !== 1 ? "s" : ""}</span>
+              <span className="text-xs text-navy-500">{filtered.length} student{filtered.length !== 1 ? "s" : ""}</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
