@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import StatsCard from "../components/StatsCard";
 import GradeBadge from "../components/GradeBadge";
-import { getStudents, clearStudents, seedStudents } from "../utils/storage";
+import { getStudents, clearStudents, seedStudents, getCourses } from "../utils/storage";
 import sampleStudents from "../utils/seed";
 import { computeStats, calculateGrade } from "../utils/grading";
 
@@ -15,6 +15,8 @@ export default function Dashboard() {
   useEffect(() => {
     setStudents(getStudents());
   }, []);
+
+  const courses = getCourses();
 
   const handleClear = () => {
     if (!window.confirm("Delete ALL student data permanently? This cannot be undone.")) return;
@@ -71,6 +73,19 @@ export default function Dashboard() {
           </Link>
         </div>
       </div>
+
+      {/* No Courses Notification */}
+      {courses.length === 0 && (
+        <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-sm">
+          <svg className="w-5 h-5 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <span className="font-medium">Courses required:</span> Please register courses first before adding students.{" "}
+            <Link to="/courses" className="underline font-medium hover:text-amber-900">Go to Courses</Link>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
