@@ -93,7 +93,7 @@ export default function CourseTracker() {
             <p className="text-xl font-bold text-navy-800">{courses.length}</p>
           </div>
 
-          <div className="space-y-2 max-h-96 overflow-y-auto">
+          <div className="space-y-2">
             {[...courses].reverse().map((c) => (
               <div key={c.id} className="flex items-center justify-between p-3 rounded-lg border border-navy-100 bg-white">
                 {editingId === c.id ? (

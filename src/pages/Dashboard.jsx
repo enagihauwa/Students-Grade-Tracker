@@ -2,26 +2,30 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import StatsCard from "../components/StatsCard";
 import GradeBadge from "../components/GradeBadge";
-import { getStudents, clearStudents, seedStudents, getCourses } from "../utils/storage";
+import { getStudents, clearStudents, clearCourses, seedStudents, getCourses } from "../utils/storage";
 import sampleStudents from "../utils/seed";
 import { computeStats, calculateGrade } from "../utils/grading";
 
 export default function Dashboard() {
   const [students, setStudents] = useState([]);
+  const [courses, setCourses] = useState([]);
   const [clearing, setClearing] = useState(false);
 
-  const refresh = () => setStudents(getStudents());
+  const refresh = () => {
+    setStudents(getStudents());
+    setCourses(getCourses());
+  };
 
   useEffect(() => {
     setStudents(getStudents());
+    setCourses(getCourses());
   }, []);
-
-  const courses = getCourses();
 
   const handleClear = () => {
     if (!window.confirm("Delete ALL student data permanently? This cannot be undone.")) return;
     setClearing(true);
     clearStudents();
+    clearCourses();
     refresh();
     setClearing(false);
   };
@@ -58,7 +62,7 @@ export default function Dashboard() {
             </button>
           )}
           {students.length === 0 && (
-            <button onClick={() => setStudents(seedStudents(sampleStudents))} className="inline-flex items-center gap-2 px-4 py-2.5 bg-gold-500 text-navy-900 rounded-lg hover:bg-gold-400 transition-colors font-medium text-sm">
+            <button onClick={() => { seedStudents(sampleStudents); refresh(); }} className="inline-flex items-center gap-2 px-4 py-2.5 bg-gold-500 text-navy-900 rounded-lg hover:bg-gold-400 transition-colors font-medium text-sm">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>

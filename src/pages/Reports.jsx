@@ -144,7 +144,7 @@ export default function Reports() {
                       Total (100) <SortIcon field="total" />
                     </th>
                     <th className="px-3 py-3 font-semibold text-center">Grade</th>
-                    <th className="px-3 py-3 font-semibold text-center">Average</th>
+                    <th className="px-3 py-3 font-semibold text-center">Average (%)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -163,7 +163,7 @@ export default function Reports() {
                         <td className="px-3 py-3 text-center"><GradeBadge grade={grade} gradePoint={gradePoint} /></td>
                         <td className="px-3 py-3 text-center font-semibold text-navy-800">
                           {s.total !== undefined && s.total > 0
-                            ? `${(s.total / 3).toFixed(1)}`
+                            ? `${s.total}%`
                             : "—"}
                         </td>
                       </tr>
