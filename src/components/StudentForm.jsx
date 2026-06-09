@@ -12,10 +12,12 @@ export default function StudentForm({ onSubmit, initial, onCancel }) {
 
   useEffect(() => { setCourses(getCourses()); }, []);
 
+  const filteredCourses = courses.filter((c) => c.level === form.level);
+
   const handleAddCourse = () => {
     const trimmed = newCourse.trim();
     if (!trimmed) return;
-    const updated = addCourse(trimmed);
+    const updated = addCourse(trimmed, form.level);
     setCourses(updated);
     setForm({ ...form, course: trimmed });
     setNewCourse("");
@@ -57,7 +59,7 @@ export default function StudentForm({ onSubmit, initial, onCancel }) {
         <label className="block text-sm font-medium text-navy-700 mb-1">Level</label>
         <select
           value={form.level}
-          onChange={(e) => setForm({ ...form, level: e.target.value })}
+          onChange={(e) => setForm({ ...form, level: e.target.value, course: "" })}
           className="w-full px-3 py-2.5 border border-navy-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 text-navy-800 bg-white"
         >
           <option value="100">100 Level</option>
@@ -73,7 +75,7 @@ export default function StudentForm({ onSubmit, initial, onCancel }) {
             className="flex-1 px-3 py-2.5 border border-navy-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 text-navy-800 bg-white"
           >
             <option value="">Select course</option>
-            {courses.map((c) => (
+            {filteredCourses.map((c) => (
               <option key={c.id} value={c.name}>{c.name}</option>
             ))}
           </select>

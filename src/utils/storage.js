@@ -64,6 +64,18 @@ export function seedStudents(data) {
     const total = s.assignment + s.test + s.exam;
     return { id, assignment: 0, test: 0, exam: 0, total: 0, ...s, assignment: s.assignment, test: s.test, exam: s.exam, total };
   });
+
+  const existingCourses = getCourses();
+  const existingKeys = new Set(existingCourses.map((c) => c.name + "|" + c.level));
+  data.forEach((s) => {
+    const key = s.course + "|" + s.level;
+    if (s.course && s.level && !existingKeys.has(key)) {
+      existingCourses.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: s.course, level: s.level });
+      existingKeys.add(key);
+    }
+  });
+  saveCourses(existingCourses);
+
   const merged = [...existing, ...students];
   save(merged);
   return merged;
@@ -84,19 +96,19 @@ function saveCourses(data) {
   localStorage.setItem(COURSES_KEY, JSON.stringify(data));
 }
 
-export function addCourse(name) {
+export function addCourse(name, level) {
   const courses = getCourses();
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  courses.push({ id, name });
+  courses.push({ id, name, level });
   saveCourses(courses);
   return courses;
 }
 
-export function updateCourse(id, name) {
+export function updateCourse(id, name, level) {
   const courses = getCourses();
   const idx = courses.findIndex((c) => c.id === id);
   if (idx === -1) throw new Error("Course not found");
-  courses[idx] = { ...courses[idx], name };
+  courses[idx] = { ...courses[idx], name, level };
   saveCourses(courses);
   return courses;
 }
