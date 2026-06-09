@@ -34,8 +34,6 @@ export default function Dashboard() {
   const gradeDist = stats.gradeDistribution;
   const totalGradeCount = Object.values(gradeDist).reduce((a, b) => a + b, 0);
 
-  const coursesOffered = [...new Set(students.map((s) => s.course).filter(Boolean))];
-
   const gradeColors = {
     A: "bg-green-100 text-green-800 border-green-200",
     B: "bg-blue-100 text-blue-800 border-blue-200",
@@ -121,22 +119,21 @@ export default function Dashboard() {
         />
       </div>
 
-      {coursesOffered.length > 0 && (
+      {courses.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm border border-navy-100 p-6">
           <h2 className="text-lg font-semibold text-navy-800 mb-4">Courses Offered by Level</h2>
           <div className="space-y-3">
-            {[...new Set(students.map((s) => s.level).filter(Boolean))].sort().map((level) => {
-              const levelCourses = [...new Set(students.filter((s) => s.level === level).map((s) => s.course).filter(Boolean))];
-              if (levelCourses.length === 0) return null;
+            {[...new Set(courses.map((c) => c.level).filter(Boolean))].sort().map((level) => {
+              const levelCourses = courses.filter((c) => c.level === level);
               return (
                 <div key={level}>
                   <p className="text-xs font-semibold text-navy-500 uppercase tracking-wider mb-2">{level} Level</p>
                   <div className="flex flex-wrap gap-2">
-                    {levelCourses.map((course) => {
-                      const count = students.filter((s) => s.course === course && s.level === level).length;
+                    {levelCourses.map((c) => {
+                      const count = students.filter((s) => s.course === c.name && s.level === level).length;
                       return (
-                        <span key={course} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-navy-50 border border-navy-200 text-sm font-medium text-navy-700">
-                          {course}
+                        <span key={c.id} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-navy-50 border border-navy-200 text-sm font-medium text-navy-700">
+                          {c.name}
                           <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-navy-600 text-white text-xs font-bold">{count}</span>
                         </span>
                       );
