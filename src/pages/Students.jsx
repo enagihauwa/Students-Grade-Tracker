@@ -24,7 +24,7 @@ export default function Students() {
       setPendingCourses([]);
     } else {
       setEditing(null);
-      setShowForm(true);
+      setShowForm(true)
     }
   };
 
@@ -137,11 +137,10 @@ export default function Students() {
             <button
               key={tab.key}
               onClick={() => setLevelFilter(tab.key)}
-              className={`px-4 py-1.5 rounded-full font-medium transition-all ${
-                levelFilter === tab.key
+              className={`px-4 py-1.5 rounded-full font-medium transition-all ${levelFilter === tab.key
                   ? `${tab.activeColor} text-white ring-2 ring-offset-1 ring-navy-300`
                   : `${tab.color}/20 text-navy-600 hover:${tab.color}/30`
-              }`}
+                }`}
             >
               {tab.label}: {tab.count}
             </button>
