@@ -10,16 +10,21 @@ const links = [
 
 export default function Navbar() {
   return (
-    <nav className="bg-navy-800 shadow-lg no-print">
+    <nav className="bg-navy-900 shadow-lg no-print border-b border-navy-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🎓</span>
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-sm">
+              <svg className="w-5 h-5 text-navy-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+              </svg>
+            </div>
             <div>
               <span className="text-xl font-bold text-white tracking-tight">
                 Grade<span className="text-gold-400">Tracker</span>
               </span>
-              <p className="text-xs text-navy-300 -mt-0.5">Department of Computer Science</p>
+              <p className="text-[10px] text-navy-400 -mt-0.5 leading-tight">Dept. of Computer Science</p>
             </div>
           </div>
           <div className="flex space-x-1 sm:space-x-2 overflow-x-auto">
@@ -32,7 +37,7 @@ export default function Navbar() {
                   `flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     isActive
                       ? "bg-navy-700 text-gold-400 shadow-inner"
-                      : "text-navy-100 hover:bg-navy-700/50 hover:text-white"
+                      : "text-navy-300 hover:bg-navy-800 hover:text-white"
                   }`
                 }
               >
