@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import StatsCard from "../components/StatsCard";
 import GradeBadge from "../components/GradeBadge";
-import { getStudents, clearStudents, clearCourses, seedStudents, getCourses } from "../utils/storage";
+import { getStudents, clearStudents, clearCourses, seedStudents, getCourses, addCourse } from "../utils/storage";
 import sampleStudents from "../utils/seed";
 import { computeStats, calculateGrade } from "../utils/grading";
 
@@ -10,6 +10,12 @@ export default function Dashboard() {
   const [students, setStudents] = useState([]);
   const [courses, setCourses] = useState([]);
   const [clearing, setClearing] = useState(false);
+  const [showCoursePrompt, setShowCoursePrompt] = useState(false);
+  const [courseName, setCourseName] = useState("");
+  const [courseLevel, setCourseLevel] = useState("100");
+  const [pendingCourses, setPendingCourses] = useState([]);
+  const [courseError, setCourseError] = useState("");
+  const navigate = useNavigate();
 
   const refresh = () => {
     setStudents(getStudents());
@@ -28,6 +34,32 @@ export default function Dashboard() {
     clearCourses();
     refresh();
     setClearing(false);
+  };
+
+  const handleAddStudent = () => {
+    const existing = getCourses();
+    if (existing.length === 0) {
+      setShowCoursePrompt(true);
+      setPendingCourses([]);
+      setCourseName("");
+      setCourseError("");
+    } else {
+      navigate("/students");
+    }
+  };
+
+  const handleAddCourse = () => {
+    const trimmed = courseName.trim();
+    if (!trimmed) { setCourseError("Course name is required"); return; }
+    setCourseError("");
+    addCourse(trimmed, courseLevel);
+    setPendingCourses([...pendingCourses, { name: trimmed, level: courseLevel }]);
+    setCourseName("");
+  };
+
+  const handleProceedAfterCourses = () => {
+    setShowCoursePrompt(false);
+    navigate("/students");
   };
 
   const stats = computeStats(students);
@@ -72,12 +104,12 @@ export default function Dashboard() {
               Seed Sample Data
             </button>
           )}
-          <Link to="/students" className="inline-flex items-center gap-2 px-4 py-2.5 bg-navy-600 text-white rounded-lg hover:bg-navy-700 transition-colors font-medium text-sm">
+          <button onClick={handleAddStudent} className="inline-flex items-center gap-2 px-4 py-2.5 bg-navy-600 text-white rounded-lg hover:bg-navy-700 transition-colors font-medium text-sm">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
             Add Student
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -360,6 +392,101 @@ export default function Dashboard() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Course Registration Prompt */}
+      {showCoursePrompt && (
+        <div className="fixed inset-0 bg-black/40 z-50 overflow-y-auto" onClick={() => setShowCoursePrompt(false)}>
+          <div className="min-h-full flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-navy-800">Courses Required</h2>
+                    <p className="text-sm text-navy-500">Register a course before adding students</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowCoursePrompt(false)} className="text-navy-400 hover:text-navy-600">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-5">
+                <p className="text-sm text-amber-800">
+                  No courses have been registered yet. Please add at least one course before registering a student.
+                </p>
+              </div>
+
+              <div className="space-y-3 mb-5">
+                <div>
+                  <label className="block text-sm font-medium text-navy-700 mb-1">Course Name</label>
+                  <input
+                    type="text" value={courseName}
+                    onChange={(e) => { setCourseName(e.target.value); setCourseError(""); }}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddCourse())}
+                    className="w-full px-3 py-2.5 border border-navy-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 text-navy-800"
+                    placeholder="e.g., Calculus"
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-navy-700 mb-1">Level</label>
+                  <select value={courseLevel} onChange={(e) => setCourseLevel(e.target.value)} className="w-full px-3 py-2.5 border border-navy-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 text-navy-800 bg-white">
+                    <option value="100">100 Level</option>
+                    <option value="200">200 Level</option>
+                  </select>
+                </div>
+                {courseError && <p className="text-sm text-red-600">{courseError}</p>}
+                <button onClick={handleAddCourse} className="w-full px-4 py-2.5 bg-navy-600 text-white rounded-lg hover:bg-navy-700 transition-colors font-medium text-sm flex items-center justify-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  Add Course
+                </button>
+              </div>
+
+              {pendingCourses.length > 0 && (
+                <div className="mb-5">
+                  <p className="text-xs font-semibold text-navy-500 uppercase tracking-wider mb-2">Added Courses</p>
+                  <div className="space-y-1.5">
+                    {pendingCourses.map((pc, i) => (
+                      <div key={i} className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-sm">
+                        <svg className="w-4 h-4 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="font-medium text-navy-800">{pc.name}</span>
+                        <span className="text-xs text-navy-500">({pc.level} Level)</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-1">
+                <button onClick={() => setShowCoursePrompt(false)} className="flex-1 px-4 py-2.5 border border-navy-200 text-navy-600 rounded-lg hover:bg-navy-50 transition-colors font-medium text-sm">
+                  Cancel
+                </button>
+                <button
+                  onClick={handleProceedAfterCourses}
+                  disabled={pendingCourses.length === 0}
+                  className="flex-1 px-4 py-2.5 bg-gold-500 text-navy-900 rounded-lg hover:bg-gold-400 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  Proceed to Student
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
