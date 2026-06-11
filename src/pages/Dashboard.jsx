@@ -85,7 +85,7 @@ export default function Dashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-navy-900">Academic Dashboard</h1>
-          <p className="text-navy-500 mt-1">Department of Computer Science — Performance Overview</p>
+          <p className="text-navy-500 mt-1">Lecturer: Abubakar Sani · Department of Computer Science — Performance Overview</p>
         </div>
         <div className="flex items-center gap-2">
           {students.length > 0 && (

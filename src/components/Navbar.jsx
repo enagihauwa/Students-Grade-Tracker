@@ -24,7 +24,7 @@ export default function Navbar() {
               <span className="text-xl font-bold text-white tracking-tight">
                 Grade<span className="text-gold-400">Tracker</span>
               </span>
-              <p className="text-[10px] text-navy-400 -mt-0.5 leading-tight">Dept. of Computer Science</p>
+              <p className="text-[10px] text-navy-400 -mt-0.5 leading-tight">Lecturer: Abubakar Sani · Dept. of Computer Science</p>
             </div>
           </div>
           <div className="flex space-x-1 sm:space-x-2 overflow-x-auto">
