@@ -80,15 +80,15 @@ export default function Reports() {
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-navy-100 p-4 text-center">
             <p className="text-xs font-medium text-navy-500 uppercase tracking-wider">Course Average</p>
-            <p className="text-2xl font-bold text-navy-800 mt-1">{stats.averageScore}%</p>
+            <p className="text-2xl font-bold text-navy-800 mt-1">{stats.gradedCount > 0 ? `${stats.averageScore}%` : "—"}</p>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-navy-100 p-4 text-center">
             <p className="text-xs font-medium text-navy-500 uppercase tracking-wider">Highest</p>
-            <p className="text-2xl font-bold text-green-700 mt-1">{stats.highestScore}</p>
+            <p className="text-2xl font-bold text-green-700 mt-1">{stats.gradedCount > 0 ? stats.highestScore : "—"}</p>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-navy-100 p-4 text-center">
             <p className="text-xs font-medium text-navy-500 uppercase tracking-wider">Lowest</p>
-            <p className="text-2xl font-bold text-red-700 mt-1">{stats.lowestScore}</p>
+            <p className="text-2xl font-bold text-red-700 mt-1">{stats.gradedCount > 0 ? stats.lowestScore : "—"}</p>
           </div>
         </div>
       )}
@@ -149,7 +149,8 @@ export default function Reports() {
                 </thead>
                 <tbody>
                   {sorted.map((s, i) => {
-                    const { grade, gradePoint } = calculateGrade(s.total ?? 0);
+                    const isGraded = s.total != null;
+                    const { grade, gradePoint } = isGraded ? calculateGrade(s.total) : {};
                     return (
                       <tr key={s.id} className="border-t border-navy-50 hover:bg-navy-50/50 transition-colors">
                         <td className="px-3 py-3 text-navy-400 text-xs">{i + 1}</td>
@@ -160,11 +161,11 @@ export default function Reports() {
                         <td className="px-3 py-3 text-center text-navy-700">{s.test ?? "—"}</td>
                         <td className="px-3 py-3 text-center text-navy-700">{s.exam ?? "—"}</td>
                         <td className="px-3 py-3 text-center font-semibold text-navy-800">{s.total ?? "—"}</td>
-                        <td className="px-3 py-3 text-center"><GradeBadge grade={grade} gradePoint={gradePoint} /></td>
+                        <td className="px-3 py-3 text-center">
+                          {isGraded ? <GradeBadge grade={grade} gradePoint={gradePoint} /> : <span className="text-navy-400 text-xs italic">Ungraded</span>}
+                        </td>
                         <td className="px-3 py-3 text-center font-semibold text-navy-800">
-                          {s.total !== undefined && s.total > 0
-                            ? `${s.total}%`
-                            : "—"}
+                          {isGraded ? `${s.total}%` : "—"}
                         </td>
                       </tr>
                     );

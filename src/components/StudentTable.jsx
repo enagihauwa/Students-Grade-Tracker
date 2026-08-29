@@ -30,7 +30,8 @@ export default function StudentTable({ students, onEdit, onDelete, onScoreEdit }
         </thead>
         <tbody>
           {students.map((s, i) => {
-            const { grade, gradePoint } = calculateGrade(s.total ?? 0);
+            const isGraded = s.total != null;
+            const { grade, gradePoint } = isGraded ? calculateGrade(s.total) : {};
             return (
               <tr key={s.id} className="border-t border-navy-50 hover:bg-navy-50/50 transition-colors">
                 <td className="px-3 py-3 text-navy-400 text-xs">{i + 1}</td>
@@ -42,7 +43,9 @@ export default function StudentTable({ students, onEdit, onDelete, onScoreEdit }
                 <td className="px-3 py-3 text-center text-navy-700">{s.test ?? "—"}</td>
                 <td className="px-3 py-3 text-center text-navy-700">{s.exam ?? "—"}</td>
                 <td className="px-3 py-3 text-center font-semibold text-navy-800">{s.total ?? "—"}</td>
-                <td className="px-3 py-3 text-center"><GradeBadge grade={grade} gradePoint={gradePoint} /></td>
+                <td className="px-3 py-3 text-center">
+                  {isGraded ? <GradeBadge grade={grade} gradePoint={gradePoint} /> : <span className="text-navy-400 text-xs italic">Ungraded</span>}
+                </td>
                 <td className="px-3 py-3 text-center">
                   <div className="flex items-center justify-center gap-1">
                     {onScoreEdit && (

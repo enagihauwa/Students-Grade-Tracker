@@ -20,7 +20,7 @@ export function getStudents() {
 export function addStudent(student) {
   const students = load();
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  const newStudent = { id, ...student, assignment: 0, test: 0, exam: 0, total: 0 };
+  const newStudent = { id, ...student, assignment: null, test: null, exam: null, total: null };
   students.push(newStudent);
   save(students);
   return newStudent;

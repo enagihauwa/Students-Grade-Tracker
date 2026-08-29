@@ -136,20 +136,20 @@ export default function Dashboard() {
         />
         <StatsCard
           title="Class Average"
-          value={stats.totalStudents > 0 ? `${stats.averageScore}%` : "—"}
+          value={stats.gradedCount > 0 ? `${stats.averageScore}%` : "—"}
           icon="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
           color="from-blue-500 to-blue-700"
         />
         <StatsCard
           title="Highest Score"
-          value={stats.totalStudents > 0 ? stats.highestScore : "—"}
+          value={stats.gradedCount > 0 ? stats.highestScore : "—"}
           subtitle={stats.bestStudent?.name || ""}
           icon="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
           color="from-green-500 to-green-700"
         />
         <StatsCard
           title="Lowest Score"
-          value={stats.totalStudents > 0 ? stats.lowestScore : "—"}
+          value={stats.gradedCount > 0 ? stats.lowestScore : "—"}
           subtitle={stats.worstStudent?.name || ""}
           icon="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"
           color="from-red-500 to-red-700"
@@ -237,14 +237,15 @@ export default function Dashboard() {
             <div className="space-y-6">
               {[...new Set(students.map((s) => s.level).filter(Boolean))].sort().map((level) => {
                 const levelStudents = students.filter((s) => s.level === level);
-                const levelTotals = levelStudents.map((s) => s.total ?? 0);
+                const gradedLevelStudents = levelStudents.filter((s) => s.total != null);
+                const levelTotals = gradedLevelStudents.map((s) => s.total);
                 const levelAvg = levelTotals.length > 0 ? Math.round(levelTotals.reduce((a, b) => a + b, 0) / levelTotals.length) : 0;
-                const high = Math.max(...levelTotals);
-                const low = Math.min(...levelTotals);
-                const best = levelStudents.find((s) => s.total === high);
-                const worst = levelStudents.find((s) => s.total === low);
-                const levelPass = levelStudents.filter((s) => s.total >= 50).length;
-                const levelPassRate = levelStudents.length > 0 ? Math.round((levelPass / levelStudents.length) * 100) : 0;
+                const high = levelTotals.length > 0 ? Math.max(...levelTotals) : 0;
+                const low = levelTotals.length > 0 ? Math.min(...levelTotals) : 0;
+                const best = gradedLevelStudents.find((s) => s.total === high);
+                const worst = gradedLevelStudents.find((s) => s.total === low);
+                const levelPass = gradedLevelStudents.filter((s) => s.total >= 50).length;
+                const levelPassRate = gradedLevelStudents.length > 0 ? Math.round((levelPass / gradedLevelStudents.length) * 100) : 0;
 
                 return (
                   <div key={level}>
@@ -254,7 +255,7 @@ export default function Dashboard() {
                     </div>
                     {/* Level Average Bar */}
                     <div className="flex items-center gap-3 mb-3">
-                      <span className="text-xs font-medium text-navy-500 w-16 shrink-0">Avg: {levelAvg}%</span>
+                      <span className="text-xs font-medium text-navy-500 w-16 shrink-0">Avg: {gradedLevelStudents.length > 0 ? `${levelAvg}%` : "—"}</span>
                       <div className="flex-1 h-2 bg-navy-100 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all duration-500 ${
@@ -264,7 +265,7 @@ export default function Dashboard() {
                         />
                       </div>
                       <div className="flex items-center gap-3 text-xs text-navy-500 shrink-0">
-                        <span className="text-green-600 font-medium">Pass {levelPassRate}%</span>
+                        <span className="text-green-600 font-medium">Pass {gradedLevelStudents.length > 0 ? `${levelPassRate}%` : "—"}</span>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -272,11 +273,11 @@ export default function Dashboard() {
                         <p className="text-xs font-semibold text-green-700 uppercase tracking-wider mb-1">Highest</p>
                         <div className="flex items-center justify-between">
                           <div className="min-w-0">
-                            <p className="font-semibold text-navy-800 truncate">{best?.name}</p>
-                            <p className="text-xs text-navy-500 truncate">{best?.matric_number}</p>
+                            <p className="font-semibold text-navy-800 truncate">{best?.name || "—"}</p>
+                            <p className="text-xs text-navy-500 truncate">{best?.matric_number || "No scores yet"}</p>
                           </div>
                           <div className="text-right shrink-0 ml-3">
-                            <p className="text-xl font-bold text-green-700 tabular-nums">{high}</p>
+                            <p className="text-xl font-bold text-green-700 tabular-nums">{best ? high : "—"}</p>
                             {best && <GradeBadge {...calculateGrade(high)} />}
                           </div>
                         </div>
@@ -285,11 +286,11 @@ export default function Dashboard() {
                         <p className="text-xs font-semibold text-red-700 uppercase tracking-wider mb-1">Lowest</p>
                         <div className="flex items-center justify-between">
                           <div className="min-w-0">
-                            <p className="font-semibold text-navy-800 truncate">{worst?.name}</p>
-                            <p className="text-xs text-navy-500 truncate">{worst?.matric_number}</p>
+                            <p className="font-semibold text-navy-800 truncate">{worst?.name || "—"}</p>
+                            <p className="text-xs text-navy-500 truncate">{worst?.matric_number || "No scores yet"}</p>
                           </div>
                           <div className="text-right shrink-0 ml-3">
-                            <p className="text-xl font-bold text-red-700 tabular-nums">{low}</p>
+                            <p className="text-xl font-bold text-red-700 tabular-nums">{worst ? low : "—"}</p>
                             {worst && <GradeBadge {...calculateGrade(low)} />}
                           </div>
                         </div>
@@ -354,9 +355,10 @@ export default function Dashboard() {
                     {levelCourses.map((c) => {
                       const enrolled = students.filter((s) => s.course === c.name && s.level === level);
                       const count = enrolled.length;
-                      const avgScore = count > 0 ? Math.round(enrolled.reduce((sum, s) => sum + (s.total ?? 0), 0) / count) : 0;
-                      const passCount = enrolled.filter((s) => s.total >= 50).length;
-                      const passRate = count > 0 ? Math.round((passCount / count) * 100) : 0;
+                      const gradedEnrolled = enrolled.filter((s) => s.total != null);
+                      const avgScore = gradedEnrolled.length > 0 ? Math.round(gradedEnrolled.reduce((sum, s) => sum + s.total, 0) / gradedEnrolled.length) : 0;
+                      const passCount = gradedEnrolled.filter((s) => s.total >= 50).length;
+                      const passRate = gradedEnrolled.length > 0 ? Math.round((passCount / gradedEnrolled.length) * 100) : 0;
                       return (
                         <div key={c.id} className="flex items-center gap-3 px-4 py-3 rounded-lg bg-navy-50 border border-navy-200 hover:bg-navy-100 hover:border-navy-300 transition-all">
                           <div className="flex-1 min-w-0">
@@ -365,7 +367,7 @@ export default function Dashboard() {
                               <span className="text-xs text-navy-500 tabular-nums">
                                 <span className="font-medium text-navy-600">{count}</span> enrolled
                               </span>
-                              {count > 0 && (
+                              {gradedEnrolled.length > 0 && (
                                 <>
                                   <span className="text-xs text-navy-300">|</span>
                                   <span className="text-xs tabular-nums">
@@ -380,7 +382,7 @@ export default function Dashboard() {
                               )}
                             </div>
                           </div>
-                          {count > 0 && (
+                          {gradedEnrolled.length > 0 && (
                             <div className="w-1 h-8 rounded-full shrink-0 self-center" style={{
                               backgroundColor: avgScore >= 70 ? "#22c55e" : avgScore >= 50 ? "#eab308" : "#ef4444"
                             }} />
