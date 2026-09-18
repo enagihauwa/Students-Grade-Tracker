@@ -8,7 +8,7 @@ const colors = {
 };
 
 export default function GradeBadge({ grade, gradePoint, size }) {
-  const cls = colors[grade] || "bg-gray-100 text-gray-800 border-gray-300";
+  const cls = colors[grade] || "bg-gray-100 text-gray-800 border-gray-300 dark:border-navy-600";
   const s = size === "lg" ? "px-3 py-1 text-sm" : "px-2 py-0.5 text-xs";
   return (
     <span className={`inline-flex items-center gap-1 rounded-md font-bold border ${cls} ${s}`}>

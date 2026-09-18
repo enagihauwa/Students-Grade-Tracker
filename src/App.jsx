@@ -8,7 +8,7 @@ import Reports from "./pages/Reports";
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-navy-50">
+    <div className="min-h-screen bg-navy-50 dark:bg-navy-950 transition-colors duration-200">
       <Navbar />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Routes>

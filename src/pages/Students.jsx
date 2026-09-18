@@ -68,7 +68,7 @@ export default function Students() {
   function StudentTable({ list, level, color }) {
     if (list.length === 0) return null;
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-navy-100 overflow-hidden">
+      <div className="bg-white dark:bg-navy-800 rounded-xl shadow-sm border border-navy-100 dark:border-navy-700 overflow-hidden">
         <div className={`px-4 py-3 font-semibold text-sm flex items-center justify-between ${color}`}>
           <span>{level} Level</span>
           <span className="font-normal opacity-75">{list.length} student{list.length !== 1 ? "s" : ""}</span>
@@ -76,7 +76,7 @@ export default function Students() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-navy-50 text-left text-navy-600">
+              <tr className="bg-navy-50 dark:bg-navy-900 dark:bg-navy-950/50 text-left text-navy-600 dark:text-navy-300">
                 <th className="px-4 py-3 font-semibold">S/N</th>
                 <th className="px-4 py-3 font-semibold">Name</th>
                 <th className="px-4 py-3 font-semibold">Matric No</th>
@@ -85,13 +85,13 @@ export default function Students() {
             </thead>
             <tbody>
               {list.map((s, i) => (
-                <tr key={s.id} className="border-t border-navy-50 hover:bg-navy-50/50">
+                <tr key={s.id} className="border-t border-navy-50 hover:bg-navy-50 dark:bg-navy-900 dark:bg-navy-950/50/50">
                   <td className="px-4 py-3 text-navy-400 text-xs">{i + 1}</td>
-                  <td className="px-4 py-3 font-medium text-navy-800">{s.name}</td>
-                  <td className="px-4 py-3 font-mono text-navy-600">{s.matric_number}</td>
+                  <td className="px-4 py-3 font-medium text-navy-800 dark:text-navy-100">{s.name}</td>
+                  <td className="px-4 py-3 font-mono text-navy-600 dark:text-navy-300">{s.matric_number}</td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => { setEditing(s); setShowForm(true); }} className="text-navy-500 hover:text-navy-700 p-1.5 rounded-lg hover:bg-navy-50" title="Edit">
+                      <button onClick={() => { setEditing(s); setShowForm(true); }} className="text-navy-500 dark:text-navy-400 hover:text-navy-700 dark:text-navy-200 p-1.5 rounded-lg hover:bg-navy-50 dark:bg-navy-900 dark:bg-navy-950/50" title="Edit">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
@@ -116,8 +116,8 @@ export default function Students() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-navy-900">Students</h1>
-          <p className="text-navy-500 mt-1">Manage student records</p>
+          <h1 className="text-2xl font-bold text-navy-900 dark:text-white">Students</h1>
+          <p className="text-navy-500 dark:text-navy-400 mt-1">Manage student records</p>
         </div>
         <button onClick={handleAddClick} className="inline-flex items-center gap-2 px-4 py-2.5 bg-navy-600 text-white rounded-lg hover:bg-navy-700 transition-colors font-medium text-sm">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,7 +139,7 @@ export default function Students() {
               onClick={() => setLevelFilter(tab.key)}
               className={`px-4 py-1.5 rounded-full font-medium transition-all ${levelFilter === tab.key
                   ? `${tab.activeColor} text-white ring-2 ring-offset-1 ring-navy-300`
-                  : `${tab.color}/20 text-navy-600 hover:${tab.color}/30`
+                  : `${tab.color}/20 text-navy-600 dark:text-navy-300 hover:${tab.color}/30`
                 }`}
             >
               {tab.label}: {tab.count}
@@ -151,10 +151,10 @@ export default function Students() {
       {showForm && (
         <div className="fixed inset-0 bg-black/40 z-50 overflow-y-auto" onClick={() => { setShowForm(false); setEditing(null); }}>
           <div className="min-h-full flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white dark:bg-navy-800 rounded-xl shadow-xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-navy-800">{editing ? "Edit Student" : "Register New Student"}</h2>
-                <button onClick={() => { setShowForm(false); setEditing(null); }} className="text-navy-400 hover:text-navy-600">
+                <h2 className="text-lg font-semibold text-navy-800 dark:text-navy-100">{editing ? "Edit Student" : "Register New Student"}</h2>
+                <button onClick={() => { setShowForm(false); setEditing(null); }} className="text-navy-400 hover:text-navy-600 dark:text-navy-300">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -175,7 +175,7 @@ export default function Students() {
       {showCoursePrompt && (
         <div className="fixed inset-0 bg-black/40 z-50 overflow-y-auto" onClick={() => setShowCoursePrompt(false)}>
           <div className="min-h-full flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white dark:bg-navy-800 rounded-xl shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
@@ -184,11 +184,11 @@ export default function Students() {
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-navy-800">Courses Required</h2>
-                    <p className="text-sm text-navy-500">Register a course before adding students</p>
+                    <h2 className="text-lg font-semibold text-navy-800 dark:text-navy-100">Courses Required</h2>
+                    <p className="text-sm text-navy-500 dark:text-navy-400">Register a course before adding students</p>
                   </div>
                 </div>
-                <button onClick={() => setShowCoursePrompt(false)} className="text-navy-400 hover:text-navy-600">
+                <button onClick={() => setShowCoursePrompt(false)} className="text-navy-400 hover:text-navy-600 dark:text-navy-300">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -203,19 +203,19 @@ export default function Students() {
 
               <div className="space-y-3 mb-5">
                 <div>
-                  <label className="block text-sm font-medium text-navy-700 mb-1">Course Name</label>
+                  <label className="block text-sm font-medium text-navy-700 dark:text-navy-200 mb-1">Course Name</label>
                   <input
                     type="text" value={courseName}
                     onChange={(e) => { setCourseName(e.target.value); setCourseError(""); }}
                     onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddCourse())}
-                    className="w-full px-3 py-2.5 border border-navy-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 text-navy-800"
+                    className="w-full px-3 py-2.5 border border-navy-200 dark:border-navy-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 text-navy-800 dark:text-navy-100"
                     placeholder="e.g., Calculus"
                     autoFocus
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-navy-700 mb-1">Level</label>
-                  <select value={courseLevel} onChange={(e) => setCourseLevel(e.target.value)} className="w-full px-3 py-2.5 border border-navy-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 text-navy-800 bg-white">
+                  <label className="block text-sm font-medium text-navy-700 dark:text-navy-200 mb-1">Level</label>
+                  <select value={courseLevel} onChange={(e) => setCourseLevel(e.target.value)} className="w-full px-3 py-2.5 border border-navy-200 dark:border-navy-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 text-navy-800 dark:text-navy-100 bg-white dark:bg-navy-800">
                     <option value="100">100 Level</option>
                     <option value="200">200 Level</option>
                   </select>
@@ -231,15 +231,15 @@ export default function Students() {
 
               {pendingCourses.length > 0 && (
                 <div className="mb-5">
-                  <p className="text-xs font-semibold text-navy-500 uppercase tracking-wider mb-2">Added Courses</p>
+                  <p className="text-xs font-semibold text-navy-500 dark:text-navy-400 uppercase tracking-wider mb-2">Added Courses</p>
                   <div className="space-y-1.5">
                     {pendingCourses.map((pc, i) => (
                       <div key={i} className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-sm">
                         <svg className="w-4 h-4 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
-                        <span className="font-medium text-navy-800">{pc.name}</span>
-                        <span className="text-xs text-navy-500">({pc.level} Level)</span>
+                        <span className="font-medium text-navy-800 dark:text-navy-100">{pc.name}</span>
+                        <span className="text-xs text-navy-500 dark:text-navy-400">({pc.level} Level)</span>
                       </div>
                     ))}
                   </div>
@@ -247,13 +247,13 @@ export default function Students() {
               )}
 
               <div className="flex gap-3 pt-1">
-                <button onClick={() => setShowCoursePrompt(false)} className="flex-1 px-4 py-2.5 border border-navy-200 text-navy-600 rounded-lg hover:bg-navy-50 transition-colors font-medium text-sm">
+                <button onClick={() => setShowCoursePrompt(false)} className="flex-1 px-4 py-2.5 border border-navy-200 dark:border-navy-700 text-navy-600 dark:text-navy-300 rounded-lg hover:bg-navy-50 dark:bg-navy-900 dark:bg-navy-950/50 transition-colors font-medium text-sm">
                   Cancel
                 </button>
                 <button
                   onClick={handleProceedAfterCourses}
                   disabled={pendingCourses.length === 0}
-                  className="flex-1 px-4 py-2.5 bg-gold-500 text-navy-900 rounded-lg hover:bg-gold-400 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2.5 bg-gold-500 text-navy-900 dark:text-white rounded-lg hover:bg-gold-400 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   Proceed to Student
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,14 +267,14 @@ export default function Students() {
       )}
 
       {students.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-navy-100">
-          <div className="text-center py-16 text-navy-500">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-navy-100 mb-4">
-              <svg className="w-8 h-8 text-navy-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="bg-white dark:bg-navy-800 rounded-xl shadow-sm border border-navy-100 dark:border-navy-700">
+          <div className="text-center py-16 text-navy-500 dark:text-navy-400">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-navy-100 dark:bg-navy-700 mb-4">
+              <svg className="w-8 h-8 text-navy-500 dark:text-navy-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
               </svg>
             </div>
-            <p className="font-semibold text-navy-700 mb-1">No Students Yet</p>
+            <p className="font-semibold text-navy-700 dark:text-navy-200 mb-1">No Students Yet</p>
             <p className="text-sm">Click "Add Student" to register the first one.</p>
           </div>
         </div>

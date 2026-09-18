@@ -6,7 +6,7 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #f0f3f9;
+  @apply bg-navy-50 text-navy-900 dark:bg-navy-950 dark:text-navy-50;
 }
 
 @media print {

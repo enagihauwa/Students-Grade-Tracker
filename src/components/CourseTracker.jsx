@@ -61,9 +61,9 @@ export default function CourseTracker() {
   const sortedLevels = Object.keys(byLevel).sort();
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-navy-100 p-6">
+    <div className="bg-white dark:bg-navy-800 rounded-xl shadow-sm border border-navy-100 dark:border-navy-700 p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-navy-800">Courses</h2>
+        <h2 className="text-lg font-semibold text-navy-800 dark:text-navy-100">Courses</h2>
         {courses.length > 0 && (
           <button onClick={() => setConfirmClear(true)} className="text-xs text-red-500 hover:text-red-700 font-medium">
             Clear All
@@ -86,10 +86,10 @@ export default function CourseTracker() {
           <input
             type="text" value={name} onChange={(e) => setName(e.target.value)}
             placeholder="Course name (e.g., Calculus)"
-            className="w-full px-3 py-2.5 border border-navy-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 text-navy-800 text-sm"
+            className="w-full px-3 py-2.5 border border-navy-200 dark:border-navy-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 text-navy-800 dark:text-navy-100 text-sm"
           />
         </div>
-        <select value={level} onChange={(e) => setLevel(e.target.value)} className="px-3 py-2.5 border border-navy-200 rounded-lg bg-white text-navy-800 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500">
+        <select value={level} onChange={(e) => setLevel(e.target.value)} className="px-3 py-2.5 border border-navy-200 dark:border-navy-700 rounded-lg bg-white dark:bg-navy-800 text-navy-800 dark:text-navy-100 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500">
           {LEVELS.map((l) => <option key={l} value={l}>{l} Level</option>)}
         </select>
         <button type="submit" className="px-4 py-2.5 bg-navy-600 text-white rounded-lg hover:bg-navy-700 transition-colors font-medium text-sm whitespace-nowrap">
@@ -107,20 +107,20 @@ export default function CourseTracker() {
         <div className="space-y-4">
           {sortedLevels.map((l) => (
             <div key={l}>
-              <p className="text-xs font-semibold text-navy-500 uppercase tracking-wider mb-2">{l} Level</p>
+              <p className="text-xs font-semibold text-navy-500 dark:text-navy-400 uppercase tracking-wider mb-2">{l} Level</p>
               <div className="space-y-2">
                 {byLevel[l].map((c) => (
-                  <div key={c.id} className="flex items-center justify-between p-3 rounded-lg border border-navy-100 bg-white">
+                  <div key={c.id} className="flex items-center justify-between p-3 rounded-lg border border-navy-100 dark:border-navy-700 bg-white dark:bg-navy-800">
                     {editingId === c.id ? (
                       <div className="flex items-center gap-2 flex-1">
                         <input
                           type="text" value={editName}
                           onChange={(e) => setEditName(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && saveEdit(c.id)}
-                          className="flex-1 px-2 py-1.5 border border-navy-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-navy-500"
+                          className="flex-1 px-2 py-1.5 border border-navy-200 dark:border-navy-700 rounded text-sm focus:outline-none focus:ring-2 focus:ring-navy-500"
                           autoFocus
                         />
-                        <select value={editLevel} onChange={(e) => setEditLevel(e.target.value)} className="px-2 py-1.5 border border-navy-200 rounded-lg bg-white text-navy-800 text-sm">
+                        <select value={editLevel} onChange={(e) => setEditLevel(e.target.value)} className="px-2 py-1.5 border border-navy-200 dark:border-navy-700 rounded-lg bg-white dark:bg-navy-800 text-navy-800 dark:text-navy-100 text-sm">
                           {LEVELS.map((lvl) => <option key={lvl} value={lvl}>{lvl} Level</option>)}
                         </select>
                         <button onClick={() => saveEdit(c.id)} className="text-green-600 hover:text-green-800 p-1" title="Save">
@@ -128,7 +128,7 @@ export default function CourseTracker() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
                         </button>
-                        <button onClick={cancelEdit} className="text-navy-400 hover:text-navy-600 p-1" title="Cancel">
+                        <button onClick={cancelEdit} className="text-navy-400 hover:text-navy-600 dark:text-navy-300 p-1" title="Cancel">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>
@@ -137,11 +137,11 @@ export default function CourseTracker() {
                     ) : (
                       <>
                         <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-navy-100 text-navy-600 text-xs font-bold">{byLevel[l].length}</span>
-                          <span className="font-medium text-sm text-navy-800 truncate">{c.name}</span>
+                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-navy-100 dark:bg-navy-700 text-navy-600 dark:text-navy-300 text-xs font-bold">{byLevel[l].length}</span>
+                          <span className="font-medium text-sm text-navy-800 dark:text-navy-100 truncate">{c.name}</span>
                         </div>
                         <div className="flex items-center gap-1 shrink-0 ml-3">
-                          <button onClick={() => startEdit(c)} className="text-navy-400 hover:text-navy-600 p-1" title="Edit">
+                          <button onClick={() => startEdit(c)} className="text-navy-400 hover:text-navy-600 dark:text-navy-300 p-1" title="Edit">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>

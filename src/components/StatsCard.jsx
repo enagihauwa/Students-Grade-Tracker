@@ -1,10 +1,10 @@
 export default function StatsCard({ title, value, subtitle, icon, color, trend }) {
   return (
-    <div className="group bg-white rounded-xl shadow-sm border border-navy-100 p-6 hover:shadow-md hover:border-navy-200 transition-all duration-200">
+    <div className="group bg-white dark:bg-navy-800 rounded-xl shadow-sm border border-navy-100 dark:border-navy-700 p-6 hover:shadow-md hover:border-navy-200 dark:border-navy-700 transition-all duration-200">
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-navy-500 uppercase tracking-wider">{title}</p>
-          <p className="text-3xl font-bold text-navy-900 mt-1.5 tabular-nums">{value}</p>
+          <p className="text-xs font-semibold text-navy-500 dark:text-navy-400 uppercase tracking-wider">{title}</p>
+          <p className="text-3xl font-bold text-navy-900 dark:text-white mt-1.5 tabular-nums">{value}</p>
           {subtitle && (
             <p className="text-sm text-navy-400 mt-1.5 truncate">{subtitle}</p>
           )}
