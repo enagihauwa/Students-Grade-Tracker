@@ -31,8 +31,8 @@ export default function Scores() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-navy-900">Score Entry</h1>
-        <p className="text-navy-500 mt-1">Enter and update student assessment scores</p>
+        <h1 className="text-2xl font-bold text-navy-900 dark:text-white">Score Entry</h1>
+        <p className="text-navy-500 dark:text-navy-400 mt-1">Enter and update student assessment scores</p>
       </div>
 
       {message && (
@@ -45,10 +45,10 @@ export default function Scores() {
       {scoringStudent && (
         <div className="fixed inset-0 bg-black/40 z-50 overflow-y-auto" onClick={() => setScoringStudent(null)}>
           <div className="min-h-full flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="bg-white dark:bg-navy-800 rounded-xl shadow-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-navy-800">Enter Scores</h2>
-                <button onClick={() => setScoringStudent(null)} className="text-navy-400 hover:text-navy-600">
+                <h2 className="text-lg font-semibold text-navy-800 dark:text-navy-100">Enter Scores</h2>
+                <button onClick={() => setScoringStudent(null)} className="text-navy-400 hover:text-navy-600 dark:text-navy-300">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -73,7 +73,7 @@ export default function Scores() {
               className={`px-4 py-1.5 rounded-full font-medium transition-all ${
                 levelFilter === tab.key
                   ? `${tab.activeColor} text-white ring-2 ring-offset-1 ring-navy-300`
-                  : "bg-navy-100 text-navy-600 hover:bg-navy-200"
+                  : "bg-navy-100 dark:bg-navy-700 text-navy-600 dark:text-navy-300 hover:bg-navy-200"
               }`}
             >
               {tab.label}
@@ -84,12 +84,12 @@ export default function Scores() {
       )}
 
       {/* Students Table with inline edit button */}
-      <div className="bg-white rounded-xl shadow-sm border border-navy-100 overflow-hidden">
+      <div className="bg-white dark:bg-navy-800 rounded-xl shadow-sm border border-navy-100 dark:border-navy-700 overflow-hidden">
         <StudentTable students={filtered} onScoreEdit={setScoringStudent} />
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-navy-100 p-6">
-        <h2 className="text-sm font-semibold text-navy-700 mb-3">Nigerian University Grading Scale</h2>
+      <div className="bg-white dark:bg-navy-800 rounded-xl shadow-sm border border-navy-100 dark:border-navy-700 p-6">
+        <h2 className="text-sm font-semibold text-navy-700 dark:text-navy-200 mb-3">Nigerian University Grading Scale</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
           {[
             { grade: "A", range: "70–100", gp: "5.0", color: "bg-green-100 text-green-800" },

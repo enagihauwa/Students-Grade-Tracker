@@ -38,48 +38,48 @@ export default function StudentForm({ onSubmit, initial, onCancel }) {
     <form onSubmit={handleSubmit} className="space-y-4">
       {error && <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{error}</div>}
       <div>
-        <label className="block text-sm font-medium text-navy-700 mb-1">Full Name</label>
+        <label className="block text-sm font-medium text-navy-700 dark:text-navy-200 mb-1">Full Name</label>
         <input
           type="text" value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
-          className="w-full px-3 py-2.5 border border-navy-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent text-navy-800"
+          className="w-full px-3 py-2.5 border border-navy-200 dark:border-navy-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent text-navy-800 dark:text-navy-100"
           placeholder="e.g., John Okafor"
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-navy-700 mb-1">Matric Number</label>
+        <label className="block text-sm font-medium text-navy-700 dark:text-navy-200 mb-1">Matric Number</label>
         <input
           type="text" value={form.matric_number}
           onChange={(e) => setForm({ ...form, matric_number: e.target.value })}
-          className="w-full px-3 py-2.5 border border-navy-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent text-navy-800"
+          className="w-full px-3 py-2.5 border border-navy-200 dark:border-navy-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 focus:border-transparent text-navy-800 dark:text-navy-100"
           placeholder="e.g., CSC/100/2024/001"
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-navy-700 mb-1">Level</label>
+        <label className="block text-sm font-medium text-navy-700 dark:text-navy-200 mb-1">Level</label>
         <select
           value={form.level}
           onChange={(e) => setForm({ ...form, level: e.target.value, course: "" })}
-          className="w-full px-3 py-2.5 border border-navy-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 text-navy-800 bg-white"
+          className="w-full px-3 py-2.5 border border-navy-200 dark:border-navy-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 text-navy-800 dark:text-navy-100 bg-white dark:bg-navy-800"
         >
           <option value="100">100 Level</option>
           <option value="200">200 Level</option>
         </select>
       </div>
       <div>
-        <label className="block text-sm font-medium text-navy-700 mb-1">Course</label>
+        <label className="block text-sm font-medium text-navy-700 dark:text-navy-200 mb-1">Course</label>
         <div className="flex gap-2">
           <select
             value={form.course}
             onChange={(e) => setForm({ ...form, course: e.target.value })}
-            className="flex-1 px-3 py-2.5 border border-navy-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 text-navy-800 bg-white"
+            className="flex-1 px-3 py-2.5 border border-navy-200 dark:border-navy-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 text-navy-800 dark:text-navy-100 bg-white dark:bg-navy-800"
           >
             <option value="">Select course</option>
             {filteredCourses.map((c) => (
               <option key={c.id} value={c.name}>{c.name}</option>
             ))}
           </select>
-          <button type="button" onClick={() => setAddingCourse(!addingCourse)} className="px-3 py-2.5 border border-navy-200 text-navy-600 rounded-lg hover:bg-navy-50 transition-colors" title="Add Course">
+          <button type="button" onClick={() => setAddingCourse(!addingCourse)} className="px-3 py-2.5 border border-navy-200 dark:border-navy-700 text-navy-600 dark:text-navy-300 rounded-lg hover:bg-navy-50 dark:bg-navy-900 dark:bg-navy-950/50 transition-colors" title="Add Course">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
@@ -91,7 +91,7 @@ export default function StudentForm({ onSubmit, initial, onCancel }) {
               type="text" value={newCourse}
               onChange={(e) => setNewCourse(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddCourse())}
-              className="flex-1 px-3 py-2 border border-navy-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 text-navy-800 text-sm"
+              className="flex-1 px-3 py-2 border border-navy-200 dark:border-navy-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-500 text-navy-800 dark:text-navy-100 text-sm"
               placeholder="Course name"
             />
             <button type="button" onClick={handleAddCourse} className="px-3 py-2 bg-navy-600 text-white rounded-lg hover:bg-navy-700 transition-colors text-sm font-medium">
@@ -105,7 +105,7 @@ export default function StudentForm({ onSubmit, initial, onCancel }) {
           {initial ? "Update" : "Register"}
         </button>
         {onCancel && (
-          <button type="button" onClick={onCancel} className="px-4 py-2.5 border border-navy-200 text-navy-600 rounded-lg hover:bg-navy-50 transition-colors">
+          <button type="button" onClick={onCancel} className="px-4 py-2.5 border border-navy-200 dark:border-navy-700 text-navy-600 dark:text-navy-300 rounded-lg hover:bg-navy-50 dark:bg-navy-900 dark:bg-navy-950/50 transition-colors">
             Cancel
           </button>
         )}
